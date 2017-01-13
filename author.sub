@@ -1,0 +1,8 @@
+universe       = vanilla
+getenv         = True
+executable     = author.sh
+output         = /public/ntungare2/python/author.out
+error          = /public/ntungare2/python/author.error
+log            = /public/ntungare2/python/author.log
+
+queue

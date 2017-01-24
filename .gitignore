@@ -91,3 +91,4 @@ ENV/
 # Added ignores
 /glove/
 /newsgroup/
+/suffle_4_6000.csv

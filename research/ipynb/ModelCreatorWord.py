@@ -19,7 +19,7 @@ from keras.models import Sequential
 from keras.callbacks import LearningRateScheduler
 from keras.regularizers import WeightRegularizer
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
@@ -85,7 +85,6 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     texts = []  # list of text samples
     labels = []  # list of label ids
     import DatabaseQuery
-    # textToUse = pd.read_csv("suffle_4_6000.csv", names=["author_id", "doc_content"], dtype={'author_id': int})
     from sshtunnel import SSHTunnelForwarder
     PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
@@ -143,7 +142,7 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
     testX = X[:]
     
     if labels is not None:
-        testY = y[:]
+        testY = labels[:]
         return (testX, testY)
         
     return (testX)

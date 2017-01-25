@@ -14,7 +14,7 @@ def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size =
     # nltk.download('punkt')
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry_v2", host="localhost", port=PORT)
+                                database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE author_id IN ("
         flag = False
@@ -74,7 +74,7 @@ def getWordDocData(PORT, doc, documentTable = 'document', chunk_size = 1000):
     i = 1
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry_v2", host="localhost", port=PORT)
+                                database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE doc_id = '" + str(doc) + "' ;"
         cur.execute(query)
@@ -129,7 +129,7 @@ def getCharAuthData(PORT, authors, doc, documentTable = 'document', vocab_size =
     print("chunk_size %s." % str(chunk_size))
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry_v2", host="localhost", port=PORT)
+                                database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE author_id IN ("
         flag = False
@@ -190,7 +190,7 @@ def getCharDocData(PORT, doc, documentTable = 'document', vocab_size = 69, chunk
     chunk_size = (int) ((100 * chunk_size) / vocab_size)
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry_v2", host="localhost", port=PORT)
+                                database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE doc_id = '" + str(doc) + "' ;"
         cur.execute(query)
@@ -243,7 +243,7 @@ def getAllWordAuthData(PORT, doc, documentTable = 'document_cnn', chunk_size = 1
     # nltk.download('punkt')
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry_v2", host="localhost", port=PORT)
+                                database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE doc_id <> '" + str(doc) + "' ;"
         cur.execute(query)
@@ -299,7 +299,7 @@ def getAllCharAuthData(PORT, authors, doc, documentTable = 'document_cnn', vocab
     print("chunk_size %s." % str(chunk_size))
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry_v2", host="localhost", port=PORT)
+                                database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE doc_id <> '" + str(doc) + "' ;"
         cur.execute(query)

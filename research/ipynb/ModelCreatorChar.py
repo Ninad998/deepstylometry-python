@@ -23,17 +23,34 @@ databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
-    embeddings_index = {}
-    f = open(os.path.join(GLOVE_DIR, fileName))
-    for line in f:
-        values = line.split()
-        word = values[0]
-        coefs = np.asarray(values[1:], dtype='float32')
-        embeddings_index[word] = coefs
-    f.close()
+    global alphabet, vocab_size, check, vocab, reverse_vocab
+    # first, build index mapping words in the embeddings set
+    # to their embedding vector
+
+    #This alphabet is 69 chars vs. 70 reported in the paper since they include two
+    # '-' characters. See https://github.com/zhangxiangxiao/Crepe#issues.
+
+    print('Indexing char vectors.')
+
+    import string
     
-    print('Found %s word vectors.' % len(embeddings_index))
-    return embeddings_index
+    alphabet = (list(string.ascii_lowercase) + list(string.digits) + 
+                list(string.punctuation) + ['\n'])
+    vocab_size = len(alphabet)
+    check = set(alphabet)
+
+    vocab = {}
+    reverse_vocab = {}
+    for ix, t in enumerate(alphabet):
+        vocab[t] = ix
+        reverse_vocab[ix] = t
+
+    MAX_NB_WORDS = vocab_size
+
+    print('Found %s char vectors.' % str(MAX_NB_WORDS))
+
+    # second, prepare text samples and their labels
+    print('Processing text dataset')
 
 def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     texts = []  # list of text samples
@@ -171,15 +188,15 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, vocab_
         
     return (testX)
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, vocab_size = 69, CONVOLUTION_FEATURE = 256, 
-                 DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256, 
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
 
     model = Sequential()
 
     model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=7,                                      # Size of kernels
-        border_mode='valid',                                  # Border = 'valid', cause kernel to reduce dimensions
+        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu',                                    # Activation function to use
         input_shape=(MAX_SEQUENCE_LENGTH, vocab_size)))       # Input = (((100 * chunk_size) / vocab_size), 69)
 
@@ -189,7 +206,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, vocab_size = 69
     model.add(Convolution1D(                                  # Layer 2,   Features: 256, Kernel Size: 7
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=7,                                      # Size of kernels
-        border_mode='valid',                                  # Border = 'valid', cause kernel to reduce dimensions
+        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
     model.add(MaxPooling1D(                                   # Layer 2a,  Max Pooling: 3
@@ -198,25 +215,25 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, vocab_size = 69
     model.add(Convolution1D(                                  # Layer 3,   Features: 256, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=3,                                      # Size of kernels
-        border_mode='valid',                                  # Border = 'valid', cause kernel to reduce dimensions
+        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
     model.add(Convolution1D(                                  # Layer 4,   Features: 256, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=3,                                      # Size of kernels
-        border_mode='valid',                                  # Border = 'valid', cause kernel to reduce dimensions
+        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
     model.add(Convolution1D(                                  # Layer 5,   Features: 256, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=3,                                      # Size of kernels
-        border_mode='valid',                                  # Border = 'valid', cause kernel to reduce dimensions
+        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
     model.add(Convolution1D(                                  # Layer 6,   Features: 256, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=5,                                      # Size of kernels
-        border_mode='valid',                                  # Border = 'valid', cause kernel to reduce dimensions
+        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
     model.add(MaxPooling1D(                                   # Layer 6a,  Max Pooling: 3
@@ -237,14 +254,13 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, vocab_size = 69
     model.add(Dropout(DROP_OUT))
 
     model.add(Dense(                                          # Layer 9,  Output Size: Size Unique Labels, Final
-        output_dim=len(labels_index),                         # Output dimension
+        output_dim=classes,                                   # Output dimension
         activation='softmax'))                                # Activation function to use
-
+    
+    
     # model = Model(start, end)
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
-
-    # adadelta = Adadelta(lr=1.0, rho=0.95, epsilon=1e-08)
 
     model.compile(loss='categorical_crossentropy', optimizer=sgd,
                   metrics=['accuracy'])
@@ -254,15 +270,10 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, vocab_size = 69
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     # Function to take input of data and return fitted model
-    callbacks = [
-        # EarlyStopping(monitor='val_loss', patience=6, verbose=1, mode='auto'),
-        LearningRateScheduler(step_decay)
-    ]
-    model.fit(trainX, trainY, validation_data=(valX, valY),
-              nb_epoch=nb_epoch, batch_size=batch_size)
-    #          nb_epoch=nb_epoch, batch_size=batch_size, callbacks=callbacks)
+    history = model.fit(trainX, trainY, validation_data=(valX, valY),
+                        nb_epoch=nb_epoch, batch_size=batch_size)
     
-    return model
+    return (model, history)
     
 def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model

@@ -32,7 +32,8 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
         embeddings_index[word] = coefs
     f.close()
     
-    print('Found %s word vectors.' % len(embeddings_index))
+    print('File used: %s' % (fileName))
+    print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
 
 def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):

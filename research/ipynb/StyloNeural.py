@@ -11,15 +11,14 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 3
         else:
             import ModelCreatorWord as md
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
-        embed = 100
         embeddings_index = md.readVectorData(embedfile, GLOVE_DIR=glove)
         (texts, labels, labels_index) = md.loadAuthData(authorList, doc_id, chunk_size = chunk_size, samples = samples)
         (trainX, trainY, valX, valY) = md.preProcessTrainVal(texts, labels, chunk_size = chunk_size)
         embedding_matrix = None
-        if level != 'char':
-            embedding_matrix = md.prepareEmbeddingMatrix(embeddings_index, EMBEDDING_DIM = embed)
-        model = md.compileModel(len(labels_index), embedding_matrix, chunk_size = chunk_size, EMBEDDING_DIM = embed, 
-                               DROP_OUT = dropout)
+        if level == 'word':
+            embedding_matrix = md.prepareEmbeddingMatrix(embeddings_index, EMBEDDING_DIM = dimensions)
+        model = md.compileModel(len(labels_index), embedding_matrix, chunk_size = chunk_size, 
+                               DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
         (model, history) = md.fitModel(model, trainX, trainY, valX, valY, nb_epoch = nb_epoch)
         (testX, textY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)
         (testX, textY) = md.preProcessTest(testX, labels_index, textY, chunk_size = chunk_size)

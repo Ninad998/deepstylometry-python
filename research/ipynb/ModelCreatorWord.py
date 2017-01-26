@@ -23,6 +23,7 @@ databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
+    print('Level = Word')
     embeddings_index = {}
     f = open(os.path.join(GLOVE_DIR, fileName))
     for line in f:

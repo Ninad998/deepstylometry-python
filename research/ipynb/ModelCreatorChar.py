@@ -29,7 +29,9 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
 
     #This alphabet is 69 chars vs. 70 reported in the paper since they include two
     # '-' characters. See https://github.com/zhangxiangxiao/Crepe#issues.
-
+    
+    print('Level = Char')
+    
     print('Indexing char vectors.')
 
     import string
@@ -183,7 +185,7 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, vocab_
     print('Shape of label tensor:', testX.shape)
     
     if labels is not None:
-        testY = y[:]
+        testY = labels[:]
         return (testX, testY)
         
     return (testX)

@@ -127,7 +127,7 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 20000, V
     from sklearn.model_selection import train_test_split
     trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT)
     
-    del data, labels
+    # del data, labels
     
     return (trainX, trainY, valX, valY)
 
@@ -255,6 +255,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
 def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
+    print("Predicting")
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
     entro = []

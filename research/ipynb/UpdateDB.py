@@ -16,13 +16,24 @@ def updateresult(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
         
         cursor = conn.cursor()
         
-        cursor.execute("""INSERT INTO readings 
-        (doc_id, candidates, dimensions, samples, iterations, dropout, accuracy, test)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """, 
+        cursor.execute("""SELECT * FROM readings WHERE doc_id = %s AND candidates = %s AND
+        dimensions = %s AND samples = %s AND iterations = %s AND dropout = %s AND test = %s ;""", 
                         (str(doc_id), str(candidate), str(dimensions), str(samples), 
                          str(iterations), str(dropout), str(accuracy), str(test)))
-        conn.commit()
-
+        
+        print("Execution completed")
+        rows = cursor.fetchall()
+        
+        if (len(rows) > 0)
+            print("Data exists")
+        else:
+            cursor.execute("""INSERT INTO readings 
+            (doc_id, candidates, dimensions, samples, iterations, dropout, accuracy, test)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """, 
+                           (str(doc_id), str(candidate), str(dimensions), str(samples), 
+                            str(iterations), str(dropout), str(accuracy), str(test)))
+            conn.commit()
+        
     except MySQLdb.Error as e:
         if conn:
             conn.rollback()

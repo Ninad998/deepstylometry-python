@@ -261,16 +261,23 @@ def predictModel(model, testX, batch_size=128):
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
     entro = []
+    flag = False
     import math
     for row in predY:
         entroval = 0
         for i in row:
+            if(i <= 0):
+                flag = True
+                pass
             entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-    yx = zip(entro, predY)
-    yx = sorted(yx, key = lambda t: t[0])
-    newPredY = [x for y, x in yx]
-    predYEntroList = newPredY[:int(len(newPredY)*0.9)]
-    predY = np.mean(predYEntroList, axis=0)
+    if(flag == False): 
+        yx = zip(entro, predY)
+        yx = sorted(yx, key = lambda t: t[0])
+        newPredY = [x for y, x in yx]
+        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predY = np.mean(predYEntroList, axis=0)
+    else:
+        predY = np.mean(predYList, axis=0)
     return (predYList, predY)

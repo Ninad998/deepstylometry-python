@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 30, level = 'word', 
-               glove = '../glove/', samples = 300, dimensions = 300, dropout = 0.4):
+def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 180, level = 'word', 
+               glove = '../glove/', samples = 300, dimensions = 200, dropout = 0.4, batch_size = 100):
     if (authorList is None) or (doc_id is None) or (doc_id == 0):
         return None
     else:
         if level == 'char':
-            import ModelCreatorChar as md
+            import CNNModelCreatorChar as md
         else:
-            import ModelCreatorWord as md
+            import LSTMModelCreatorWord as md
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
         embeddings_index = md.readVectorData(embedfile, GLOVE_DIR=glove)
         (texts, labels, labels_index) = md.loadAuthData(authorList, doc_id, chunk_size = chunk_size, samples = samples)
@@ -19,9 +19,9 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 3
             embedding_matrix = md.prepareEmbeddingMatrix(embeddings_index, EMBEDDING_DIM = dimensions)
         model = md.compileModel(len(labels_index), embedding_matrix, chunk_size = chunk_size, 
                                DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
-        (model, history) = md.fitModel(model, trainX, trainY, valX, valY, nb_epoch = nb_epoch)
+        (model, history) = md.fitModel(model, trainX, trainY, valX, valY, nb_epoch = nb_epoch, batch_size = batch_size)
         (testX, textY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)
         (testX, textY) = md.preProcessTest(testX, labels_index, textY, chunk_size = chunk_size)
         # textY = np.mean(textY, axis=0)
-        (predYList, predY) = md.predictModel(model, testX)
+        (predYList, predY) = md.predictModel(model, testX, batch_size = batch_size)
         return (labels_index, predYList, predY, history)

@@ -66,7 +66,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        current = current.sample(n = samples)
+        if(samples > min(size)):
+            current = current.sample(n = min(size))
+            samples = min(size)
+        else:
+            current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
@@ -127,7 +131,7 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 20000, V
     from sklearn.model_selection import train_test_split
     trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT)
     
-    # del data, labels
+    del data, labels
     
     return (trainX, trainY, valX, valY)
 
@@ -253,22 +257,29 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=128):
+def predictModel(model, testX, batch_size=100):
     # Function to take input of data and return prediction model
-    print("Predicting")
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
     entro = []
+    flag = False
     import math
     for row in predY:
         entroval = 0
         for i in row:
-            entroval += (i * (math.log(i , 2)))
+            if(i <= 0):
+                flag = True
+                pass
+            else:
+                entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-    yx = zip(entro, predY)
-    yx = sorted(yx, key = lambda t: t[0])
-    newPredY = [x for y, x in yx]
-    predYEntroList = newPredY[:int(len(newPredY)*0.9)]
-    predY = np.mean(predYEntroList, axis=0)
+    if(flag == False): 
+        yx = zip(entro, predY)
+        yx = sorted(yx, key = lambda t: t[0])
+        newPredY = [x for y, x in yx]
+        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predY = np.mean(predYEntroList, axis=0)
+    else:
+        predY = np.mean(predYList, axis=0)
     return (predYList, predY)

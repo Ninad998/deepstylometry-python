@@ -11,15 +11,13 @@ import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-from keras.layers import Dense, Flatten
-from keras.layers import Convolution1D, MaxPooling1D, Embedding
+from keras.layers import Dense, Activation
+from keras.layers import Embedding, LSTM
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential
-from keras.callbacks import LearningRateScheduler
-from keras.regularizers import WeightRegularizer
 
-databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
@@ -68,6 +66,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
         current = textToUse.loc[textToUse['author_id'] == auth]
         if(samples > min(size)):
             current = current.sample(n = min(size))
+            samples = min(size)
         else:
             current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
@@ -165,9 +164,9 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM
             embedding_matrix[i] = embedding_vector
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256, 
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
-    
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, LSTM_FEATURE = 256, 
+                 DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
+
     model = Sequential()
 
     model.add(Embedding(                                      # Layer 0, Start
@@ -176,74 +175,20 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         weights=[embedding_matrix],                           # Initialize word weights
         input_length=chunk_size))                             # Define length to input sequences in the first layer
 
-    model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=7,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 1a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Convolution1D(                                  # Layer 2,   Features: 256, Kernel Size: 7
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=7,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 2a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Convolution1D(                                  # Layer 3,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=3,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Convolution1D(                                  # Layer 4,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=3,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Convolution1D(                                  # Layer 5,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=3,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Convolution1D(                                  # Layer 6,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=5,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 6a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Flatten())                                      # Layer 7
-
-    model.add(Dense(                                          # Layer 7a,  Output Size: 1024
-        output_dim=DENSE_FEATURE,                             # Output dimension
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Dropout(DROP_OUT))
-
-    model.add(Dense(                                          # Layer 8,   Output Size: 1024
-        output_dim=DENSE_FEATURE,                             # Output dimension
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Dropout(DROP_OUT))
+    model.add(LSTM(
+        output_dim = LSTM_FEATURE, 
+        dropout_W=0.2, 
+        dropout_U=0.2))                                       # try using a GRU instead, for fun
 
     model.add(Dense(                                          # Layer 9,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                   # Output dimension
-        activation='softmax'))                                # Activation function to use
+        activation='sigmoid'))                                # Activation function to use
 
     # model = Model(start, end)
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
 
-    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+    model.compile(loss='categorical_crossentropy', optimizer='adam',
                   metrics=['accuracy'])
 
     print("Done compiling.")
@@ -256,7 +201,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=128):
+def predictModel(model, testX, batch_size=100):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
@@ -269,7 +214,8 @@ def predictModel(model, testX, batch_size=128):
             if(i <= 0):
                 flag = True
                 pass
-            entroval += (i * (math.log(i , 2)))
+            else:
+                entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
     if(flag == False): 

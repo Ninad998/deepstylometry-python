@@ -11,15 +11,13 @@ import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-from keras.layers import Dense, Flatten
-from keras.layers import Convolution1D, MaxPooling1D, Embedding
+from keras.layers import Dense, Activation
+from keras.layers import Embedding, LSTM
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential
-from keras.callbacks import LearningRateScheduler
-from keras.regularizers import WeightRegularizer
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
@@ -190,81 +188,31 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, vocab_
         
     return (testX)
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256, 
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, LSTM_FEATURE = 256, 
+                 DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
 
     model = Sequential()
 
-    model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=7,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu',                                    # Activation function to use
-        input_shape=(MAX_SEQUENCE_LENGTH, vocab_size)))       # Input = (((100 * chunk_size) / vocab_size), 69)
+    model.add(Embedding(                                      # Layer 0, Start
+        input_dim=nb_words + 1,                               # Size to dictionary, has to be input + 1
+        output_dim=EMBEDDING_DIM,                             # Dimensions to generate
+        weights=[embedding_matrix],                           # Initialize word weights
+        input_length=chunk_size))                             # Define length to input sequences in the first layer
 
-    model.add(MaxPooling1D(                                   # Layer 1a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Convolution1D(                                  # Layer 2,   Features: 256, Kernel Size: 7
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=7,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 2a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Convolution1D(                                  # Layer 3,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=3,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Convolution1D(                                  # Layer 4,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=3,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Convolution1D(                                  # Layer 5,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=3,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Convolution1D(                                  # Layer 6,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=5,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 6a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Flatten())                                      # Layer 7
-
-    model.add(Dense(                                          # Layer 7a,  Output Size: 1024
-        output_dim=DENSE_FEATURE,                             # Output dimension
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Dropout(DROP_OUT))
-
-    model.add(Dense(                                          # Layer 8,   Output Size: 1024
-        output_dim=DENSE_FEATURE,                             # Output dimension
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Dropout(DROP_OUT))
+    model.add(LSTM(
+        output_dim = LSTM_FEATURE, 
+        dropout_W=0.2, 
+        dropout_U=0.2))                                       # try using a GRU instead, for fun
 
     model.add(Dense(                                          # Layer 9,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                   # Output dimension
-        activation='softmax'))                                # Activation function to use
-    
-    
+        activation='sigmoid'))                                # Activation function to use
+
     # model = Model(start, end)
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
 
-    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+    model.compile(loss='categorical_crossentropy', optimizer='adam',
                   metrics=['accuracy'])
 
     print("Done compiling.")
@@ -277,21 +225,30 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=128):
+def predictModel(model, testX, batch_size=100):
     # Function to take input of data and return prediction model
+    print(testX)
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
     entro = []
+    flag = False
     import math
     for row in predY:
         entroval = 0
         for i in row:
-            entroval += (i * (math.log(i , 2)))
+            if(i <= 0):
+                flag = True
+                pass
+            else:
+                entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-    yx = zip(entro, predY)
-    yx = sorted(yx, key = lambda t: t[0])
-    newPredY = [x for y, x in yx]
-    predYEntroList = newPredY[:int(len(newPredY)*0.9)]
-    predY = np.mean(predYEntroList, axis=0)
+    if(flag == False): 
+        yx = zip(entro, predY)
+        yx = sorted(yx, key = lambda t: t[0])
+        newPredY = [x for y, x in yx]
+        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predY = np.mean(predYEntroList, axis=0)
+    else:
+        predY = np.mean(predYList, axis=0)
     return (predYList, predY)

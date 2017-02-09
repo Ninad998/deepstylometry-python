@@ -16,10 +16,8 @@ from keras.layers import Convolution1D, MaxPooling1D, Embedding
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential
-from keras.callbacks import LearningRateScheduler
-from keras.regularizers import WeightRegularizer
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
@@ -167,7 +165,7 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256, 
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.01, MOMENTUM=0.9):
     
     model = Sequential()
 
@@ -175,7 +173,8 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         input_dim=nb_words + 1,                               # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                             # Dimensions to generate
         weights=[embedding_matrix],                           # Initialize word weights
-        input_length=chunk_size))                             # Define length to input sequences in the first layer
+        input_length=chunk_size,                              # Define length to input sequences in the first layer
+        trainable=False))                                     # Disable weight changes during training
 
     model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
@@ -257,7 +256,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=100):
+def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]

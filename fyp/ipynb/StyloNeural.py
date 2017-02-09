@@ -9,7 +9,7 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNModelCreatorWord as md
+            import LSTMModelCreatorWord as md
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
         embeddings_index = md.readVectorData(embedfile, GLOVE_DIR=glove)
         (texts, labels, labels_index) = md.loadAuthData(authorList, doc_id, chunk_size = chunk_size, samples = samples)
@@ -24,4 +24,5 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
         (testX, textY) = md.preProcessTest(testX, labels_index, textY, chunk_size = chunk_size)
         # textY = np.mean(textY, axis=0)
         (predYList, predY) = md.predictModel(model, testX, batch_size = batch_size)
+        del model
         return (labels_index, predYList, predY, history)

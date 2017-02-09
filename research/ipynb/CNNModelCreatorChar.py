@@ -16,8 +16,6 @@ from keras.layers import Convolution1D, MaxPooling1D, Embedding
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential
-from keras.callbacks import LearningRateScheduler
-from keras.regularizers import WeightRegularizer
 
 databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
@@ -83,7 +81,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        current = current.sample(n = samples)
+        if(samples > min(size)):
+            current = current.sample(n = min(size))
+            samples = min(size)
+        else:
+            current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]

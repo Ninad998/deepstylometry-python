@@ -66,6 +66,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
         current = textToUse.loc[textToUse['author_id'] == auth]
         if(samples > min(size)):
             current = current.sample(n = min(size))
+            samples = min(size)
         else:
             current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
@@ -164,22 +165,23 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, LSTM_FEATURE = 256, 
-                 DROP_OUT = 0.4, LEARNING_RATE=0.001, MOMENTUM=0.9):
-
+                 DROP_OUT = 0.4, LEARNING_RATE=0.01, MOMENTUM=0.9):
+    
     model = Sequential()
 
     model.add(Embedding(                                      # Layer 0, Start
         input_dim=nb_words + 1,                               # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                             # Dimensions to generate
         weights=[embedding_matrix],                           # Initialize word weights
-        input_length=chunk_size))                             # Define length to input sequences in the first layer
+        input_length=chunk_size,                              # Define length to input sequences in the first layer
+        trainable=False))                                     # Disable weight changes during training
 
-    model.add(LSTM(
-        output_dim = LSTM_FEATURE, 
-        dropout_W=0.2, 
-        dropout_U=0.2))                                       # try using a GRU instead, for fun
+    model.add(LSTM(                                           # Layer 1,  Output Size: 256
+        output_dim = LSTM_FEATURE,                            # Features: 256 
+        dropout_W=0.2,                                        # Dropout
+        dropout_U=0.2))                                       # Dropout
 
-    model.add(Dense(                                          # Layer 9,  Output Size: Size Unique Labels, Final
+    model.add(Dense(                                          # Layer 2,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                   # Output dimension
         activation='sigmoid'))                                # Activation function to use
 

@@ -16,10 +16,8 @@ from keras.layers import Convolution1D, MaxPooling1D, Embedding
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential
-from keras.callbacks import LearningRateScheduler
-from keras.regularizers import WeightRegularizer
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
@@ -281,29 +279,21 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=100):
+def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
     entro = []
-    flag = False
     import math
     for row in predY:
         entroval = 0
         for i in row:
-            if(i <= 0):
-                flag = True
-                pass
-            else:
-                entroval += (i * (math.log(i , 2)))
+            entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-    if(flag == False): 
-        yx = zip(entro, predY)
-        yx = sorted(yx, key = lambda t: t[0])
-        newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
-        predY = np.mean(predYEntroList, axis=0)
-    else:
-        predY = np.mean(predYList, axis=0)
+    yx = zip(entro, predY)
+    yx = sorted(yx, key = lambda t: t[0])
+    newPredY = [x for y, x in yx]
+    predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+    predY = np.mean(predYEntroList, axis=0)
     return (predYList, predY)

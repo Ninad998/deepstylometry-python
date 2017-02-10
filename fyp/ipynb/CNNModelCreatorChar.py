@@ -17,7 +17,7 @@ from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential
 
-databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):

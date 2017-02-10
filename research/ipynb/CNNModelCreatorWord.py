@@ -56,7 +56,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
         size.append(current.shape[0])
-        print("Author: %5s  Size: %5s" % (auth, max(size)))
+        print("Author: %5s  Size: %5s" % (auth, current.shape[0]))
     print("Min: %s" % (min(size)))
     print("Max: %s" % (max(size)))
 

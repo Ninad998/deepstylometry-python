@@ -63,7 +63,7 @@ def updateresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
         rows = cursor.fetchall()
         
         if (len(rows) > 0):
-            print("Data exists")
+            return False
         else:
             cursor.execute("""INSERT INTO readingsCNN 
             (doc_id, candidates, dimensions, samples, iterations, dropout, accuracy, test)
@@ -71,6 +71,8 @@ def updateresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
                            (str(doc_id), str(candidate), str(dimensions), str(samples), 
                             str(iterations), str(dropout), str(accuracy), str(test)))
             conn.commit()
+            
+            return True
         
     except MySQLdb.Error as e:
         if conn:
@@ -138,7 +140,7 @@ def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 30
         rows = cursor.fetchall()
         
         if (len(rows) > 0):
-            print("Data exists")
+            return False
         else:
             cursor.execute("""INSERT INTO readingsOldCNN 
             (doc_id, candidates, dimensions, samples, iterations, dropout, accuracy, test)
@@ -146,6 +148,8 @@ def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 30
                            (str(doc_id), str(candidate), str(dimensions), str(samples), 
                             str(iterations), str(dropout), str(accuracy), str(test)))
             conn.commit()
+            
+            return True
         
     except MySQLdb.Error as e:
         if conn:
@@ -214,7 +218,7 @@ def updateresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
         rows = cursor.fetchall()
         
         if (len(rows) > 0):
-            print("Data exists")
+            return False
         else:
             cursor.execute("""INSERT INTO readingsLSTM 
             (doc_id, candidates, dimensions, samples, iterations, accuracy, test)
@@ -222,6 +226,8 @@ def updateresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
                            (str(doc_id), str(candidate), str(dimensions), str(samples), 
                             str(iterations), str(accuracy), str(test)))
             conn.commit()
+            
+            return True
         
     except MySQLdb.Error as e:
         if conn:

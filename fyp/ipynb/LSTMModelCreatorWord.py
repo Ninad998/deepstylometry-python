@@ -83,7 +83,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     print('Found %s texts.' % len(texts))
     print('Found %s labels.' % len(labels))
     
-    return (texts, labels, labels_index)
+    return (texts, labels, labels_index, samples)
 
 def loadDocData(authorList, doc_id, chunk_size = 1000):
     texts = []  # list of text samples

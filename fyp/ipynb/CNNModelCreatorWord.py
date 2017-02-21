@@ -64,8 +64,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        current = current.sample(n = min(size))
-        samples = min(size)
+        if(samples > min(size)):
+            current = current.sample(n = min(size))
+            samples = min(size)
+        else:
+            current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]

@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-# np.random.seed(1337)
+np.random.seed(1337)
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -64,11 +64,8 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        if(samples > min(size)):
-            current = current.sample(n = min(size))
-            samples = min(size)
-        else:
-            current = current.sample(n = samples)
+        current = current.sample(n = min(size))
+        samples = min(size)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
@@ -174,6 +171,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         output_dim=EMBEDDING_DIM,                             # Dimensions to generate
         weights=[embedding_matrix],                           # Initialize word weights
         input_length=chunk_size,                              # Define length to input sequences in the first layer
+        dropout=0.2,
         trainable=False))                                     # Disable weight changes during training
 
     model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
@@ -252,7 +250,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
-                        nb_epoch=nb_epoch, batch_size=batch_size)
+                        nb_epoch=nb_epoch, batch_size=batch_size, class_weight = 'auto')
     
     return (model, history)
     

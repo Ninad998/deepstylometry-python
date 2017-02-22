@@ -18,7 +18,7 @@ from keras.optimizers import SGD
 from keras.models import Sequential
 
 databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
-documentTable = 'document'
+documentTable = 'document_english_corpus_full'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Level = Word')

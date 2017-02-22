@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-np.random.seed(1337)
+# np.random.seed(1337)
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -171,7 +171,6 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         output_dim=EMBEDDING_DIM,                             # Dimensions to generate
         weights=[embedding_matrix],                           # Initialize word weights
         input_length=chunk_size,                              # Define length to input sequences in the first layer
-        dropout=0.2,
         trainable=False))                                     # Disable weight changes during training
 
     model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
@@ -250,11 +249,11 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
-                        nb_epoch=nb_epoch, batch_size=batch_size, class_weight = 'auto')
+                        nb_epoch=nb_epoch, batch_size=batch_size)
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=100):
+def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
@@ -275,7 +274,7 @@ def predictModel(model, testX, batch_size=100):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)

@@ -18,7 +18,7 @@ from keras.optimizers import SGD
 from keras.models import Sequential
 
 databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
-documentTable = 'document_english_corpus_full'
+documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Level = Word')
@@ -64,8 +64,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        current = current.sample(n = min(size))
-        samples = min(size)
+        if(samples > min(size)):
+            current = current.sample(n = min(size))
+            samples = min(size)
+        else:
+            current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
@@ -253,7 +256,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=100):
+def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
@@ -274,7 +277,7 @@ def predictModel(model, testX, batch_size=100):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)

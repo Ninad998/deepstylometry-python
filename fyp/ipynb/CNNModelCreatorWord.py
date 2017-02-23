@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-# np.random.seed(1337)
+np.random.seed(123)
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -64,7 +64,9 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        current = current.sample(n = min(size))
+        if samples > min(size):
+            samples = min(size)
+        current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
@@ -105,7 +107,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
-def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 20000, VALIDATION_SPLIT = 0.1):
+def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.1):
     global tokenizer, word_index
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
@@ -129,7 +131,7 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 20000, V
     
     return (trainX, trainY, valX, valY)
 
-def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB_WORDS = 20000):
+def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB_WORDS = 40000):
     # finally, vectorize the text samples into a 2D integer tensor
     sequences = tokenizer.texts_to_sequences(texts)
 
@@ -147,7 +149,7 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
         
     return (testX)
 
-def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM = 100):
+def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
     global nb_words, embedding_matrix
     nb_words = min(MAX_NB_WORDS, len(word_index))
     embedding_matrix = np.zeros((nb_words + 1, EMBEDDING_DIM))
@@ -239,7 +241,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
 
-    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+    model.compile(loss='categorical_crossentropy', optimizer='adam',
                   metrics=['accuracy'])
 
     print("Done compiling.")
@@ -252,7 +254,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     
     return (model, history)
     
-def predictModel(model, testX, batch_size=128):
+def predictModel(model, testX, batch_size=100):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     predYList = predY[:]
@@ -273,7 +275,7 @@ def predictModel(model, testX, batch_size=128):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)

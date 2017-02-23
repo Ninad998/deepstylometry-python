@@ -11,10 +11,10 @@ import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
+from keras.layers import Convolution1D, MaxPooling1D, Embedding, LSTM
 from keras.layers import Dense, Flatten
-from keras.layers import Convolution1D, MaxPooling1D, Embedding
 from keras.layers import Dropout
-from keras.optimizers import SGD
+from keras.optimizers import RMSprop
 from keras.models import Sequential
 
 databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
@@ -35,7 +35,7 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
 
-def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
+def loadGenderData(doc_id, chunk_size = 1000, samples = 300):
     texts = []  # list of text samples
     labels_index = {}  # dictionary mapping label name to numeric id
     labels = []  # list of label ids
@@ -47,33 +47,28 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordAuthData(5400, authorList, doc_id,
-                                                  documentTable = documentTable, chunk_size = chunk_size)
+        textToUse = DatabaseQuery.getWordGenderData(5400, doc_id, documentTable = documentTable, chunk_size = chunk_size)
     labels = []
     texts = []
     size = []
-    authorList = textToUse.author_id.unique()
-    for auth in authorList:
-        current = textToUse.loc[textToUse['author_id'] == auth]
+    genderList = textToUse.gender.unique()
+    for gender in genderList:
+        current = textToUse.loc[textToUse['gender'] == gender]
         size.append(current.shape[0])
-        print("Author: %5s  Size: %5s" % (auth, current.shape[0]))
+        print("Gender: %5s  Size: %5s" % (auth, current.shape[0]))
     print("Min: %s" % (min(size)))
     print("Max: %s" % (max(size)))
-
-    authorList = authorList.tolist()
     
-    for auth in authorList:
-        current = textToUse.loc[textToUse['author_id'] == auth]
-        if (samples > min(size)):
-            samples = min(size)
-        current = current.sample(n = samples)
+    for gender in genderList:
+        current = textToUse.loc[textToUse['gender'] == gender]
+        current = current.sample(n = min(size))
         textlist = current.doc_content.tolist()
         texts = texts + textlist
-        labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
+        labels = labels + [genderList.index(gender) for gender in current.gender.tolist()]
     labels_index = {}
-    labels_index[0] = 0
-    for i, auth in enumerate(authorList):
-        labels_index[i] = auth
+    labels_index[0] = '0'
+    for i, gender in enumerate(genderList):
+        labels_index[i] = gender
 
     del textToUse
     
@@ -83,7 +78,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     return (texts, labels, labels_index, samples)
 
-def loadDocData(authorList, doc_id, chunk_size = 1000):
+def loadDocData(genderList, doc_id, chunk_size = 1000):
     texts = []  # list of text samples
     labels = []  # list of label ids
     import DatabaseQuery
@@ -94,12 +89,12 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable, 
-                                                 chunk_size = chunk_size)
+        textToUse = DatabaseQuery.getWordGenderDocData(5400, doc_id, documentTable = documentTable, 
+                                                       chunk_size = chunk_size)
     labels = []
     texts = []
     for index, row in textToUse.iterrows():
-        labels.append(authorList.index(row.author_id))
+        labels.append(genderList.index(row.gender))
         texts.append(row.doc_content)
 
     del textToUse
@@ -162,8 +157,8 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM
             embedding_matrix[i] = embedding_vector
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256, 
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 1024, DROP_OUT = 0.4, LEARNING_RATE=0.01, MOMENTUM=0.9):
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 30, 
+                 BORDER_MODE = 'valid', LSTM_FEATURE = 30, DROP_OUT = 0.4, DENSE_FEATURE = 10, LEARNING_RATE=0.001):
     
     model = Sequential()
 
@@ -174,80 +169,61 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         input_length=chunk_size,                              # Define length to input sequences in the first layer
         trainable=False))                                     # Disable weight changes during training
 
-    model.add(Convolution1D(                                  # Layer 1,   Features: 256, Kernel Size: 7
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=7,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 1a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Convolution1D(                                  # Layer 2,   Features: 256, Kernel Size: 7
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=7,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
-
-    model.add(MaxPooling1D(                                   # Layer 2a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
-
-    model.add(Convolution1D(                                  # Layer 3,   Features: 256, Kernel Size: 3
+    model.add(Convolution1D(                                  # Layer 1,  Features: 30, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=3,                                      # Size of kernels
         border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
-    model.add(Convolution1D(                                  # Layer 4,   Features: 256, Kernel Size: 3
+    model.add(MaxPooling1D(                                   # Layer 2,  Max Pooling: 3
+        pool_length=2))                                       # Size of kernels
+
+    model.add(Convolution1D(                                  # Layer 3,  Features: 30, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=3,                                      # Size of kernels
         border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
-    model.add(Convolution1D(                                  # Layer 5,   Features: 256, Kernel Size: 3
+    model.add(MaxPooling1D(                                   # Layer 4,  Max Pooling: 3
+        pool_length=2))                                       # Size of kernels
+
+    model.add(Convolution1D(                                  # Layer 5,  Features: 30, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
         filter_length=3,                                      # Size of kernels
         border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 
-    model.add(Convolution1D(                                  # Layer 6,   Features: 256, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=5,                                      # Size of kernels
-        border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                   # Activation function to use
+    model.add(MaxPooling1D(                                   # Layer 6,  Max Pooling: 3
+        pool_length=2))                                       # Size of kernels
 
-    model.add(MaxPooling1D(                                   # Layer 6a,  Max Pooling: 3
-        pool_length=3))                                       # Size of kernels
+    model.add(LSTM(                                           # Layer 7,  Output Size: 30
+        output_dim=LSTM_FEATURE,                              # Output dimension
+        activation='tanh'))                                   # Activation function to use
+    
+    model.add(Dropout(DROP_OUT))                              # Layer 8,  Dropout fraction to use: 0.4
 
-    model.add(Flatten())                                      # Layer 7
-
-    model.add(Dense(                                          # Layer 7a,  Output Size: 1024
+    model.add(Dense(                                          # Layer 9,  Output Size: 1024
         output_dim=DENSE_FEATURE,                             # Output dimension
-        activation='relu'))                                   # Activation function to use
+        activation='tanh'))                                   # Activation function to use
 
-    model.add(Dropout(DROP_OUT))
-
-    model.add(Dense(                                          # Layer 8,   Output Size: 1024
-        output_dim=DENSE_FEATURE,                             # Output dimension
-        activation='relu'))                                   # Activation function to use
-
-    model.add(Dropout(DROP_OUT))
-
-    model.add(Dense(                                          # Layer 9,  Output Size: Size Unique Labels, Final
+    model.add(Dropout(DROP_OUT))                              # Layer 10, Dropout fraction to use: 0.4
+    
+    model.add(Dense(                                          # Layer 11, Output Size: Size Unique Labels, Final
         output_dim=classes,                                   # Output dimension
         activation='softmax'))                                # Activation function to use
 
     # model = Model(start, end)
 
-    sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
+    rms = RMSprop(lr=LEARNING_RATE)
 
-    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+    model.compile(loss='categorical_crossentropy', optimizer=rms,
                   metrics=['accuracy'])
 
     print("Done compiling.")
     return model
 
-def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+def fitModel(model, trainX, trainY, valX, valY, classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, 
+             nb_epoch=30, batch_size=100):
     
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_split=0.2, shuffle = True,
@@ -278,7 +254,7 @@ def predictModel(model, testX, batch_size=128):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)

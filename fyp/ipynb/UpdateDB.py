@@ -42,7 +42,7 @@ def checkCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
             conn.close()
 
 
-def updateresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+def insertresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
                     iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
     
     conn = None
@@ -56,7 +56,7 @@ def updateresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
         query += " AND dimensions = " + str(dimensions) + " AND samples = " + str(samples)
         query += " AND iterations = " + str(iterations) + " AND dropout = " + str(dropout)
         query += " AND test LIKE '%" + str(test) + "%' ;"
-
+        
         cursor.execute(query)
         
         print("Execution completed")
@@ -119,7 +119,7 @@ def checkOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
         if conn is not None:
             conn.close()
 
-def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+def insertresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
                     iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
     
     conn = None
@@ -197,7 +197,7 @@ def checkLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
             conn.close()
 
 
-def updateresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+def insertresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
                     iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
     
     conn = None
@@ -209,7 +209,7 @@ def updateresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
 
         query = "SELECT * FROM readingsLSTM WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
         query += " AND dimensions = " + str(dimensions) + " AND samples = " + str(samples)
-        query += " AND iterations = " + str(iterations)
+        query += " AND iterations = " + str(iterations) + " AND dropout = " + str(dropout)
         query += " AND test LIKE '%" + str(test) + "%' ;"
 
         cursor.execute(query)

@@ -6,16 +6,18 @@ import os
 
 import numpy as np
 
-# np.random.seed(1337)
+np.random.seed(123)
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-from keras.layers import Dense, Activation
-from keras.layers import Embedding, LSTM
+from keras.models import Sequential
+from keras.layers import Embedding
+from keras.layers import LSTM
+from keras.layers import Dense
 from keras.layers import Dropout
 from keras.optimizers import SGD
-from keras.models import Sequential
+from keras.callbacks import ModelCheckpoint
 
 databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
 documentTable = 'document'
@@ -30,7 +32,7 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
         coefs = np.asarray(values[1:], dtype='float32')
         embeddings_index[word] = coefs
     f.close()
-    
+
     print('File used: %s' % (fileName))
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
@@ -61,7 +63,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     print("Max: %s" % (max(size)))
 
     authorList = authorList.tolist()
-    
+
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
         if(samples > min(size)):
@@ -78,11 +80,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
         labels_index[i] = auth
 
     del textToUse
-    
+
     print('Authors %s.' % (str(authorList)))
     print('Found %s texts.' % len(texts))
     print('Found %s labels.' % len(labels))
-    
+
     return (texts, labels, labels_index, samples)
 
 def loadDocData(authorList, doc_id, chunk_size = 1000):
@@ -96,7 +98,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable, 
+        textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable,
                                                  chunk_size = chunk_size)
     labels = []
     texts = []
@@ -105,7 +107,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
         texts.append(row.doc_content)
 
     del textToUse
-    
+
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
@@ -128,9 +130,9 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 20000, V
     # split the data into a training set and a validation set
     from sklearn.model_selection import train_test_split
     trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT)
-    
+
     del data, labels
-    
+
     return (trainX, trainY, valX, valY)
 
 def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB_WORDS = 20000):
@@ -144,11 +146,11 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
     print('Shape of data tensor:', X.shape)
 
     testX = X[:]
-    
+
     if labels is not None:
         testY = labels[:]
         return (testX, testY)
-        
+
     return (testX)
 
 def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM = 100):
@@ -164,9 +166,9 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM
             embedding_matrix[i] = embedding_vector
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, LSTM_FEATURE = 256, 
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, LSTM_FEATURE = 256,
                  DROP_OUT = 0.4, LEARNING_RATE=0.01, MOMENTUM=0.9):
-    
+
     model = Sequential()
 
     model.add(Embedding(                                      # Layer 0, Start
@@ -177,13 +179,13 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         trainable=False))                                     # Disable weight changes during training
 
     model.add(LSTM(                                           # Layer 1,  Output Size: 256
-        output_dim = LSTM_FEATURE,                            # Features: 256 
+        output_dim=LSTM_FEATURE,                              # Features: 256
         dropout_W=0.2,                                        # Dropout
         dropout_U=0.2))                                       # Dropout
 
     model.add(Dense(                                          # Layer 2,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                   # Output dimension
-        activation='sigmoid'))                                # Activation function to use
+        activation='softmax'))                                # Activation function to use
 
     # model = Model(start, end)
 
@@ -196,12 +198,19 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     return model
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+    filepath="author-lstm-word-{epoch:02d}-{val_acc:.2f}.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    callbacks_list = [checkpoint]
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
-                        nb_epoch=nb_epoch, batch_size=batch_size)
-    
+                        nb_epoch=nb_epoch, batch_size=batch_size,
+                        callbacks=callbacks_list)
+
+    acc = (model.evaluate(valX, valY))[1] * 100
+    print("Final Accuracy: %.2f" % (acc))
+
     return (model, history)
-    
+
 def predictModel(model, testX, batch_size=100):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
@@ -219,7 +228,7 @@ def predictModel(model, testX, batch_size=100):
                 entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-    if(flag == False): 
+    if(flag == False):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]

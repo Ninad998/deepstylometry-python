@@ -42,7 +42,7 @@ def checkCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
             conn.close()
 
 
-def insertresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+def updateresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
                     iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
     
     conn = None
@@ -70,6 +70,156 @@ def insertresultCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """, 
                            (str(doc_id), str(candidate), str(dimensions), str(samples), 
                             str(iterations), str(dropout), str(accuracy), str(test)))
+            conn.commit()
+            
+            return True
+        
+    except MySQLdb.Error as e:
+        if conn:
+            conn.rollback()
+        print('Error %s' % e)
+        sys.exit(1)
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+def checkOldCNNDiff(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+                           iterations = 180, dropout = 0.2, test = 'Error'):
+    
+    conn = None
+    
+    try:
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests")
+        
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM readingsOldCNNDiff WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query += " AND dimensions = " + str(dimensions) + " AND samples = " + str(samples)
+        query += " AND iterations = " + str(iterations) + " AND dropout = " + str(dropout)
+        query += " AND test LIKE '%" + str(test) + "%' ;"
+
+        cursor.execute(query)
+        
+        print("Execution completed")
+        rows = cursor.fetchall()
+        
+        if (len(rows) > 0):
+            return True
+        else:
+            return False
+        
+    except MySQLdb.Error as e:
+        if conn:
+            conn.rollback()
+        print('Error %s' % e)
+        sys.exit(1)
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+def updateresultOldCNNDiff(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+                           iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
+    
+    conn = None
+    
+    try:
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests")
+        
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM readingsOldCNNDiff WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query += " AND dimensions = " + str(dimensions) + " AND samples = " + str(samples)
+        query += " AND iterations = " + str(iterations) + " AND dropout = " + str(dropout)
+        query += " AND test LIKE '%" + str(test) + "%' ;"
+        
+        cursor.execute(query)
+        
+        print("Execution completed")
+        rows = cursor.fetchall()
+        
+        if (len(rows) > 0):
+            return False
+        else:
+            cursor.execute("""INSERT INTO readingsOldCNNDiff 
+            (doc_id, candidates, dimensions, samples, iterations, dropout, accuracy, test)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """, 
+                           (str(doc_id), str(candidate), str(dimensions), str(samples), 
+                            str(iterations), str(dropout), str(accuracy), str(test)))
+            conn.commit()
+            
+            return True
+        
+    except MySQLdb.Error as e:
+        if conn:
+            conn.rollback()
+        print('Error %s' % e)
+        sys.exit(1)
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+def checkSVC(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, test = 'Error'):
+    
+    conn = None
+    
+    try:
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests")
+        
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM readingsSVC WHERE doc_id = " + str(doc_id)
+        query += " AND candidates = " + str(candidate)
+        query += " AND samples = " + str(samples)
+        query += " AND test LIKE '%" + str(test) + "%' ;"
+
+        cursor.execute(query)
+        
+        print("Execution completed")
+        rows = cursor.fetchall()
+        
+        if (len(rows) > 0):
+            return True
+        else:
+            return False
+        
+    except MySQLdb.Error as e:
+        if conn:
+            conn.rollback()
+        print('Error %s' % e)
+        sys.exit(1)
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+def updateresultSVC(doc_id = 0, candidate = 4, samples = 300, accuracy = 0, test = 'Error'):
+    
+    conn = None
+    
+    try:
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests")
+        
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM readingsSVC WHERE doc_id = " + str(doc_id)
+        query += " AND candidates = " + str(candidate)
+        query += " AND samples = " + str(samples)
+        query += " AND test LIKE '%" + str(test) + "%' ;"
+        
+        cursor.execute(query)
+        
+        print("Execution completed")
+        rows = cursor.fetchall()
+        
+        if (len(rows) > 0):
+            return False
+        else:
+            cursor.execute("""INSERT INTO readingsSVC 
+            (doc_id, candidates, samples, accuracy, test)
+            VALUES (%s, %s, %s, %s, %s); """, (str(doc_id), str(candidate), str(samples), str(accuracy), str(test)))
             conn.commit()
             
             return True
@@ -119,7 +269,7 @@ def checkOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
         if conn is not None:
             conn.close()
 
-def insertresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
                     iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
     
     conn = None
@@ -197,7 +347,7 @@ def checkLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300,
             conn.close()
 
 
-def insertresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
+def updateresultLSTM(doc_id = 0, candidate = 4, dimensions = 200, samples = 300, 
                     iterations = 180, dropout = 0.2, accuracy = 0, test = 'Error'):
     
     conn = None

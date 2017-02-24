@@ -64,7 +64,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
-        if samples > min(size):
+        if (samples > min(size)):
             samples = min(size)
         current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
@@ -212,7 +212,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     model.add(Convolution1D(                                  # Layer 6,   Features: 256, Kernel Size: 3
         nb_filter=CONVOLUTION_FEATURE,                        # Number of kernels or number of filters to generate
-        filter_length=5,                                      # Size of kernels
+        filter_length=3,                                      # Size of kernels
         border_mode=BORDER_MODE,                              # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                   # Activation function to use
 

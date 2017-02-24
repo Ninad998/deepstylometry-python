@@ -9,7 +9,7 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNModelCreatorWord as md
+            import CNNModelCreatorWordEdit as md
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
         embeddings_index = md.readVectorData(embedfile, GLOVE_DIR=glove)
         (texts, labels, labels_index, samples) = md.loadAuthData(authorList, doc_id, chunk_size = chunk_size, samples = samples)

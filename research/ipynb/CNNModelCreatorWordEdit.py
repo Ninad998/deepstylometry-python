@@ -17,8 +17,8 @@ from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.models import Sequential, Model
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
-documentTable = 'document'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
+documentTable = 'document_english_corpus_full'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Level = Word')

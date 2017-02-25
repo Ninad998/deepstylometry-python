@@ -68,7 +68,7 @@ def updateresultCNN(doc_id = 0, candidate = 4, dimensions = 200,
         else:
             cursor.execute("""INSERT INTO readingsCNN
             (doc_id, candidates, dimensions, samples, iterations, dropout, train_acc, val_acc, test)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), str(dimensions),
                             str(samples), str(iterations), str(dropout),
                             str(train_acc), str(val_acc), str(test)))
@@ -148,7 +148,7 @@ def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200,
         else:
             cursor.execute("""INSERT INTO readingsOldCNN
             (doc_id, candidates, dimensions, samples, iterations, dropout,  train_acc, val_acc, test)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), str(dimensions),
                             str(samples), str(iterations), str(dropout),
                             str(train_acc), str(val_acc), str(test)))

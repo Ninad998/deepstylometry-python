@@ -164,9 +164,10 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.4, LEARNING_RATE=0.01, MOMENTUM=0.9):
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+    global sgd
 
-    ngram_filters = [3, 4]                                     # Define ngrams list, 3-gram, 4-gram
+    ngram_filters = [3, 4, 5]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
 
     graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
@@ -201,7 +202,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     model.add(graph)                                           # Concat the ngram convolutions
 
-    model.add(Dropout(0.5))                                    # Dropout 50%
+    model.add(Dropout(DROP_OUT))                               # Dropout 50%
 
     model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
@@ -221,17 +222,28 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     filepath="author-cnn-ngrams-word.hdf5"
+
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
     callbacks_list = [checkpoint]
+
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
                         nb_epoch=nb_epoch, batch_size=batch_size,
                         callbacks=callbacks_list)
 
-    acc = (model.evaluate(valX, valY))[1] * 100
-    print("Final Accuracy: %.2f" % (acc))
+    # load weights from the best checkpoint
+    model.load_weights(filepath)
+    # Compile model again (required to make predictions)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+                  metrics=['accuracy'])
 
-    return (model, history)
+    train_acc = (model.evaluate(trainX, trainY))[1] * 100
+    print("Final Train Accuracy: %.2f" % (train_acc))
+    val_acc = (model.evaluate(valX, valY))[1] * 100
+    print("Final Test Accuracy: %.2f" % (val_acc))
+
+    return (model, history, train_acc, val_acc)
 
 def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model

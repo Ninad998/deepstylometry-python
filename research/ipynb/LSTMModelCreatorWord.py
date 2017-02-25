@@ -199,17 +199,28 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     filepath="author-lstm-word.hdf5"
+
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
     callbacks_list = [checkpoint]
+
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
                         nb_epoch=nb_epoch, batch_size=batch_size,
                         callbacks=callbacks_list)
 
-    acc = (model.evaluate(valX, valY))[1] * 100
-    print("Final Accuracy: %.2f" % (acc))
+    # load weights from the best checkpoint
+    model.load_weights(filepath)
+    # Compile model again (required to make predictions)
+    model.compile(loss='categorical_crossentropy', optimizer='adam',
+                  metrics=['accuracy'])
 
-    return (model, history)
+    train_acc = (model.evaluate(trainX, trainY))[1] * 100
+    print("Final Train Accuracy: %.2f" % (train_acc))
+    val_acc = (model.evaluate(valX, valY))[1] * 100
+    print("Final Test Accuracy: %.2f" % (val_acc))
+
+    return (model, history, train_acc, val_acc)
 
 def predictModel(model, testX, batch_size=100):
     # Function to take input of data and return prediction model

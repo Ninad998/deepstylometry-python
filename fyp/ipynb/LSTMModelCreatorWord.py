@@ -198,7 +198,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     return model
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
-    filepath="author-lstm-word-{epoch:02d}-{val_acc:.2f}.hdf5"
+    filepath="author-lstm-word.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     callbacks_list = [checkpoint]
     # Function to take input of data and return fitted model

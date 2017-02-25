@@ -11,11 +11,12 @@ np.random.seed(123)
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
+from keras.models import Sequential, Model
 from keras.layers import Embedding, Convolution1D, MaxPooling1D
 from keras.layers import Input, Merge, Dense, Flatten
 from keras.layers import Dropout
 from keras.optimizers import SGD
-from keras.models import Sequential, Model
+from keras.callbacks import ModelCheckpoint
 
 databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document_english_corpus_full'
@@ -30,7 +31,7 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
         coefs = np.asarray(values[1:], dtype='float32')
         embeddings_index[word] = coefs
     f.close()
-    
+
     print('File used: %s' % (fileName))
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
@@ -61,7 +62,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     print("Max: %s" % (max(size)))
 
     authorList = authorList.tolist()
-    
+
     for auth in authorList:
         current = textToUse.loc[textToUse['author_id'] == auth]
         if (samples > min(size)):
@@ -76,11 +77,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
         labels_index[i] = auth
 
     del textToUse
-    
+
     print('Authors %s.' % (str(authorList)))
     print('Found %s texts.' % len(texts))
     print('Found %s labels.' % len(labels))
-    
+
     return (texts, labels, labels_index, samples)
 
 def loadDocData(authorList, doc_id, chunk_size = 1000):
@@ -94,7 +95,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable, 
+        textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable,
                                                  chunk_size = chunk_size)
     labels = []
     texts = []
@@ -103,7 +104,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
         texts.append(row.doc_content)
 
     del textToUse
-    
+
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
@@ -126,9 +127,9 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
     # split the data into a training set and a validation set
     from sklearn.model_selection import train_test_split
     trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT)
-    
+
     del data, labels
-    
+
     return (trainX, trainY, valX, valY)
 
 def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB_WORDS = 40000):
@@ -142,11 +143,11 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
     print('Shape of data tensor:', X.shape)
 
     testX = X[:]
-    
+
     if labels is not None:
         testY = labels[:]
         return (testX, testY)
-        
+
     return (testX)
 
 def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
@@ -162,43 +163,53 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
             embedding_matrix[i] = embedding_vector
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256, 
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
                  BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.4, LEARNING_RATE=0.01, MOMENTUM=0.9):
-    
-    ngram_filters = [3, 4]
+
+    ngram_filters = [3, 4]                                     # Define ngrams list, 3-gram, 4-gram
     convs = []
-    
+
     graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
-    
+
     for n_gram in ngram_filters:
-        conv = Convolution1D(nb_filter=CONVOLUTION_FEATURE, filter_length=n_gram, activation='relu')(graph_in)
-        pool = MaxPooling1D(pool_length=3)(conv)
+        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
+            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
+            filter_length=n_gram,                              # Size of kernels, ngram
+            activation='relu')(graph_in)                       # Activation function to use
+
+        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
+            pool_length=3)(conv)                               # Size of kernels
+
         flat = Flatten()(pool)
+
         convs.append(flat)
-    
-    out = Merge(mode='concat')(convs)
-    
-    graph = Model(input=graph_in, output=out)
-    
+
     model = Sequential()
-    model.add(Embedding(
-        input_dim=nb_words + 1,
-        output_dim=EMBEDDING_DIM,
-        weights=[embedding_matrix],
-        input_length=chunk_size,
-        trainable=False))
-    
-    model.add(Dropout(0.25))
-    
-    model.add(graph)
-    
-    model.add(Dropout(0.5))
-    
-    model.add(Dense(output_dim = DENSE_FEATURE, activation='relu'))
-    
-    model.add(Dense(output_dim=classes, activation='softmax'))
-    
-    # model = Model(start, end)
+
+    model.add(Embedding(                                       # Layer 0, Start
+        input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
+        output_dim=EMBEDDING_DIM,                              # Dimensions to generate
+        weights=[embedding_matrix],                            # Initialize word weights
+        input_length=chunk_size,                               # Define length to input sequences in the first layer
+        trainable=False))                                      # Disable weight changes during training
+
+    model.add(Dropout(0.25))                                   # Dropout 25%
+
+    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
+
+    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
+
+    model.add(graph)                                           # Concat the ngram convolutions
+
+    model.add(Dropout(0.5))                                    # Dropout 50%
+
+    model.add(Dense(                                           # Layer 3,  Output Size: 256
+        output_dim=DENSE_FEATURE,                              # Output dimension
+        activation='relu'))                                    # Activation function to use
+
+    model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
+        output_dim=classes,                                    # Output dimension
+        activation='softmax'))                                 # Activation function to use
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
 
@@ -209,15 +220,19 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     return model
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
-    
+    filepath="author-cnn-ngrams-word.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    callbacks_list = [checkpoint]
     # Function to take input of data and return fitted model
-    history = model.fit(trainX, trainY, validation_split=0.2, shuffle = True,
-                        nb_epoch=nb_epoch, batch_size=batch_size)
-    
+    history = model.fit(trainX, trainY, validation_data=(valX, valY),
+                        nb_epoch=nb_epoch, batch_size=batch_size,
+                        callbacks=callbacks_list)
+
     acc = (model.evaluate(valX, valY))[1] * 100
     print("Final Accuracy: %.2f" % (acc))
+
     return (model, history)
-    
+
 def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
@@ -235,7 +250,7 @@ def predictModel(model, testX, batch_size=128):
                 entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-    if(flag == False): 
+    if(flag == False):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]

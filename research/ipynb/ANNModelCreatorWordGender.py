@@ -242,10 +242,10 @@ def fitModel(model, trainX, trainY, valX, valY, classes, embedding_matrix, EMBED
     model.compile(loss='categorical_crossentropy', optimizer=rms,
                   metrics=['accuracy'])
 
-    train_acc = (model.evaluate(trainX, trainY))[1] * 100
-    print("Final Train Accuracy: %.2f" % (train_acc))
-    val_acc = (model.evaluate(valX, valY))[1] * 100
-    print("Final Test Accuracy: %.2f" % (val_acc))
+    train_acc = (model.evaluate(trainX, trainY))[1]
+    print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
+    val_acc = (model.evaluate(valX, valY))[1]
+    print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
 
     return (model, history, train_acc, val_acc)
 

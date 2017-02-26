@@ -19,7 +19,7 @@ from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
 
-databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
 documentTable = 'document_english_corpus_full'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
@@ -215,10 +215,10 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     model.compile(loss='categorical_crossentropy', optimizer='adam',
                   metrics=['accuracy'])
 
-    train_acc = (model.evaluate(trainX, trainY))[1] * 100
-    print("Final Train Accuracy: %.2f" % (train_acc))
-    val_acc = (model.evaluate(valX, valY))[1] * 100
-    print("Final Test Accuracy: %.2f" % (val_acc))
+    train_acc = (model.evaluate(trainX, trainY))[1]
+    print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
+    val_acc = (model.evaluate(valX, valY))[1]
+    print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
 
     return (model, history, train_acc, val_acc)
 

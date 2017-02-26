@@ -1,8 +1,0 @@
-universe       = vanilla
-getenv         = True
-executable     = news.sh
-output         = /public/ntungare2/python/news.out
-error          = /public/ntungare2/python/news.error
-log            = /public/ntungare2/python/news.log
-
-queue

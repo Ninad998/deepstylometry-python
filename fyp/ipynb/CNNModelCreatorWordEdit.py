@@ -108,7 +108,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
-def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.1):
+def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
     global tokenizer, word_index
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
@@ -167,7 +167,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
                  BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
-    ngram_filters = [3, 4, 5]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
 
     graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))

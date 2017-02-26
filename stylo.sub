@@ -1,0 +1,8 @@
+universe       = vanilla
+getenv         = True
+executable     = stylo.sh
+output         = /public/ntungare2/python/stylo.out
+error          = /public/ntungare2/python/stylo.error
+log            = /public/ntungare2/python/stylo.log
+
+queue

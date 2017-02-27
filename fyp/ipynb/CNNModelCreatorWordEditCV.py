@@ -126,7 +126,7 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
 
     # split the data into a training set and a validation set
     from sklearn.model_selection import KFold
-    kfold = KFold(n_splits = 4, shuffle=True, random_state)
+    kfold = KFold(n_splits = 4, shuffle=True, random_state = 123)
     train = []
     test = []
     for train_index, test_index in kfold.split(data):
@@ -170,7 +170,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
                  BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
-    ngram_filters = [3, 4, 5]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
 
     graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))

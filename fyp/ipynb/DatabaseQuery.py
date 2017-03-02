@@ -344,7 +344,7 @@ def getAllCharAuthData(PORT, authors, doc, documentTable = 'document_cnn', vocab
 
     return df
 
-def getWordGenderData(PORT, doc, documentTable = 'document', chunk_size = 1000):
+def getWordGenderData(PORT, documentTable = 'document', chunk_size = 1000):
     df = pd.DataFrame()
     conn = None
     output = []
@@ -354,37 +354,13 @@ def getWordGenderData(PORT, doc, documentTable = 'document', chunk_size = 1000):
         conn = psycopg2.connect(user="stylometry", password="stylometry",
                                 database="stylometry_v2", host="localhost", port=PORT)
         cur = conn.cursor()
-        
-        query = "SELECT author_id FROM " + str('author')
-        query += " WHERE gender like '%F%' AND doc_id <> '" + str(doc) + "' ;"
-        cur.execute(query)
-        print("Execution completed")
-        rows = cur.fetchall()
-        print("Read completed")
-        lenOfFemale = len(rows)
-        print("Number of rows: %s" % (lenOfFemale))
-        fauthors = []
-        for row in rows:
-            row = [row[0], "F"]
-            fauthors.append(row)
-            
-        query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE author_id IN ("
-        flag = False
-        for auth in authors:
-            if not flag:
-                query = query + str(auth[0])
-                flag = True
-            else:
-                query = query + ", " + str(auth[0])
-        query = query + ") AND doc_id <> '" + str(doc) + "' ;"
+        query = "SELECT gender, doc_content FROM author_profiling ;"
         cur.execute(query)
         print("Execution completed")
         rows = cur.fetchall()
         print("Read completed")
         print("Number of rows: %s" % (len(rows)))
-        fauthors = dict(fauthors)
-        
-        count = 0
+
         for row in rows:
             tokens = nltk.word_tokenize(row[1].decode("utf8"))
             chunk1 = []
@@ -397,8 +373,7 @@ def getWordGenderData(PORT, doc, documentTable = 'document', chunk_size = 1000):
                     xx = ' '.join(chunk1)
                     xx = str(xx)
                     chunk1 = []
-                    gender = fauthors[row[0]]
-                    output.append([row[0], xx, gender])
+                    output.append([row[0], xx])
                     i = 1
             if len(chunk1) > 0:
                 xx = ' '.join(chunk1)
@@ -406,68 +381,13 @@ def getWordGenderData(PORT, doc, documentTable = 'document', chunk_size = 1000):
                 chunk1 = []
                 output.append([row[0], xx])
                 i = 1
-                
-        flength = len(output)
-        
-        query = "SELECT author_id FROM " + str('author')
-        query += " WHERE gender like '%M%' doc_id <> '" + str(doc) + "' LIMIT " + str(lenOfFemale) + " ;"
-        cur.execute(query)
-        print("Execution completed")
-        rows = cur.fetchall()
-        print("Read completed")
-        lenOfMale = len(rows)
-        print("Number of rows: %s" % (lenOfMale))
-        
-        mauthors = []
-        
-        for row in rows:
-            row = [row[0], "M"]
-            mauthors.append(row)
-        
-        query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE author_id IN ("
-        flag = False
-        for auth in authors:
-            if not flag:
-                query = query + str(auth[0])
-                flag = True
-            else:
-                query = query + ", " + str(auth[0])
-        query = query + ") AND doc_id <> '" + str(doc) + "' ;"
-        cur.execute(query)
-        print("Execution completed")
-        rows = cur.fetchall()
-        print("Read completed")
-        print("Number of rows: %s" % (len(rows)))
-        mauthors = dict(mauthors)
-        
-        count = 0
-        for row in rows:
-            tokens = nltk.word_tokenize(row[1].decode("utf8"))
-            chunk1 = []
-            for x in tokens:
-                if (i < chunk_size):
-                    chunk1.append(x.encode("utf8"))
-                    i += 1
-                else:
-                    chunk1.append(x.encode("utf8"))
-                    xx = ' '.join(chunk1)
-                    xx = str(xx)
-                    chunk1 = []
-                    gender = mauthors[row[0]]
-                    output.append([row[0], xx, gender])
-                    i = 1
-                if len(output) > (flength * 2):
-                    break
-            if len(chunk1) > 0:
-                xx = ' '.join(chunk1)
-                xx = str(xx)
-                chunk1 = []
-                output.append([row[0], xx])
-                i = 1
-                
-        df = pd.DataFrame(output, columns=["author_id", "doc_content", "gender"])
+
+        df = pd.DataFrame(output, columns=["gender", "doc_content"])
+        df = df[df.gender != None]
         del output
-        
+
+        df.to_csv('data.csv', encoding='utf-8')
+
         print(df.dtypes)
         print("Data Frame created: Shape: %s" % (str(df.shape)))
 
@@ -482,6 +402,7 @@ def getWordGenderData(PORT, doc, documentTable = 'document', chunk_size = 1000):
             conn.close()
 
     return df
+
 
 def getWordGenderDocData(PORT, doc, documentTable = 'document', chunk_size = 1000):
     df = pd.DataFrame()

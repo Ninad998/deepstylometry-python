@@ -167,13 +167,13 @@ def updateresultOldCNNCV(doc_id = 0, candidate = 4, dimensions = 200,
             conn.close()
 
 
-def checkOldML(doc_id = 0, candidate = 4, samples = 300,
+def checkOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
                test = 'Error'):
 
     conn = None
 
     try:
-        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests")
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests", port = port)
 
         cursor = conn.cursor()
 
@@ -201,13 +201,13 @@ def checkOldML(doc_id = 0, candidate = 4, samples = 300,
         if conn is not None:
             conn.close()
 
-def updateresultOldCNN(doc_id = 0, candidate = 4, samples = 300, 
-                       train_acc = 0.0, val_acc = 0.0, test = 'Error'):
+def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300, 
+                      train_acc = 0.0, val_acc = 0.0, test = 'Error'):
 
     conn = None
 
     try:
-        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests")
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests", port = port)
 
         cursor = conn.cursor()
         

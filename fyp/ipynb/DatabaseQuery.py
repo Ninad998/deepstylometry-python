@@ -415,23 +415,15 @@ def getWordGenderDocData(PORT, doc, documentTable = 'document', chunk_size = 100
                                 database="stylometry_v2", host="localhost", port=PORT)
         cur = conn.cursor()
         
-        query = "SELECT author_id,  FROM " + str('author')
-        query += " WHERE doc_id = '" + str(doc) + "' ;"
-        
-        query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE doc_id = '" + str(doc) + "' ;"
+        query = "SELECT author.gender, document.doc_content FROM document INNER JOIN author"
+        query += " ON author.author_id = document.author_id"
+        query += " WHERE document.doc_id = " + str(doc) + " ;"
         cur.execute(query)
         print("Execution completed")
         rows = cur.fetchall()
         print("Read completed")
         print("Number of rows: %s" % (len(rows)))
-        author = rows[0]
         
-        query = "SELECT author_id, gender FROM " + str('author')
-        query += " WHERE author_id = '" + str(author) + "' ;"
-        cur.execute(query)
-        gender = cur.fetchall()[1]
-        
-        count = 0
         for row in rows:
             tokens = nltk.word_tokenize(row[1].decode("utf8"))
             chunk1 = []
@@ -444,7 +436,7 @@ def getWordGenderDocData(PORT, doc, documentTable = 'document', chunk_size = 100
                     xx = ' '.join(chunk1)
                     xx = str(xx)
                     chunk1 = []
-                    output.append([row[0], xx, gender])
+                    output.append([row[0], xx])
                     i = 1
             if len(chunk1) > 0:
                 xx = ' '.join(chunk1)
@@ -453,7 +445,7 @@ def getWordGenderDocData(PORT, doc, documentTable = 'document', chunk_size = 100
                 output.append([row[0], xx])
                 i = 1
             
-        df = pd.DataFrame(output, columns=["author_id", "doc_content", "gender"])
+        df = pd.DataFrame(output, columns=["gender", "doc_content"])
         del output
         
         print(df.dtypes)

@@ -65,7 +65,7 @@ def getTestResults(doc_id = 0, glove = '../glove/', dimensions = 200, dropout = 
                               DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
     
     import numpy as np
-    testY = np.mean(testY, axis=0)
+    testY = np.mean(testY, axis=0, dtype=int)
     
     (predYList, predY) = md.predictModel(model, testX, batch_size = batch_size)
 

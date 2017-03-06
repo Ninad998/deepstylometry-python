@@ -202,7 +202,8 @@ def checkOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
             conn.close()
 
 def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300, 
-                      train_acc = 0.0, val_acc = 0.0, test = 'Error'):
+                      train_acc = 0.0, val_acc = 0.0, test_acc = 0.0,
+                      test_bin = 0.0, test = 'Error'):
 
     conn = None
 
@@ -224,10 +225,11 @@ def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
             return False
         else:
             cursor.execute("""INSERT INTO readingsOldML
-            (doc_id, candidates, samples, train_acc, val_acc, test)
-            VALUES (%s, %s, %s, %s, %s, %s); """,
+            (doc_id, candidates, samples, train_acc, val_acc, test_acc, test_bin, test)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), str(samples), 
-                            str(train_acc), str(val_acc), str(test)))
+                            str(train_acc), str(val_acc), str(test_acc), str(test_bin), 
+                            str(test)))
             conn.commit()
 
             return True

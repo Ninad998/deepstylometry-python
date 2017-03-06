@@ -59,12 +59,12 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
             from keras import backend as K
             K.clear_session()
             
-        # (testX, textY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)
+        # (testX, testY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)
         # 
-        # (testX, textY) = md.preProcessTest(testX, labels_index, textY, chunk_size = chunk_size)
+        # (testX, testY) = md.preProcessTest(testX, labels_index, textY, chunk_size = chunk_size)
         # 
         # textY = np.mean(textY, axis=0)
-        # (predYList, predY) = md.predictModel(model, testX, batch_size = batch_size)
+        # (predYList, predY) = md.predictModel(model, testY, batch_size = batch_size)
         
         # del model
         

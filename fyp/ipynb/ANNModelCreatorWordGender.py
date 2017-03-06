@@ -50,7 +50,7 @@ def loadGenderData(chunk_size = 1000, filename = 'data.csv', samples = 3200):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5430)):
-        textToUse = DatabaseQuery.getWordGenderData(5430, documentTable = documentTable, chunk_size = chunk_size)
+        textToUse = DatabaseQuery.getWordGenderData(5430, chunk_size = chunk_size)
     labels = []
     texts = []
     size = []
@@ -92,8 +92,7 @@ def loadDocData(doc_id, genderList, chunk_size = 1000):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordGenderDocData(5400, doc_id, documentTable = documentTable,
-                                                       chunk_size = chunk_size)
+        textToUse = DatabaseQuery.getWordGenderDocData(5400, doc_id, chunk_size = chunk_size)
     labels = []
     texts = []
     for index, row in textToUse.iterrows():
@@ -134,13 +133,13 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
 def makeTokenizer():
     global tokenizer, word_index
     
+    import cPickle as pickle
+    
     with open('tokenizer.pickle', 'rb') as handle:
         tokenizer = pickle.load(handle)
 
     word_index = tokenizer.word_index
     print('Found %s unique tokens.' % len(word_index))
-
-    return (trainX, trainY, valX, valY)
 
 def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB_WORDS = 40000):
     # finally, vectorize the text samples into a 2D integer tensor
@@ -243,8 +242,8 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     print("Done compiling.")
     return model
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 30,
-                 BORDER_MODE = 'valid', LSTM_FEATURE = 30, DROP_OUT = 0.4, DENSE_FEATURE = 1024, LEARNING_RATE=0.001):
+def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 30,
+                   BORDER_MODE = 'valid', LSTM_FEATURE = 30, DROP_OUT = 0.4, DENSE_FEATURE = 1024, LEARNING_RATE=0.001):
     global rms
 
     model = Sequential()
@@ -299,8 +298,9 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
         output_dim=classes,                                   # Output dimension
         activation='softmax'))                                # Activation function to use
     
-    with open('rms.pickle', 'rb') as handle:
-        rms = pickle.load(handle)
+    import cPickle as pickle
+    
+    rms = RMSprop(lr=LEARNING_RATE)
         
     filepath="gender-cnn-lstm-word.hdf5"
     
@@ -313,6 +313,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     return model
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=120, batch_size=100):
+    
     filepath="gender-cnn-lstm-word.hdf5"
 
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
@@ -347,10 +348,11 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=120, batch_size=100):
 
     return (model, history, train_acc, val_acc)
 
-def predictModel(model, testX, testY, batch_size=108):
-    """
+def predictModel(model, testX, batch_size=100):
+    
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
+    
     predYList = predY[:]
     entro = []
     flag = False
@@ -373,9 +375,5 @@ def predictModel(model, testX, testY, batch_size=108):
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)
-    """
     
-    test_acc = (model.evaluate(testX, testY))[1]
-    print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
-    
-    return test_acc
+    return (predYList, predY)

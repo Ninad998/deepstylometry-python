@@ -344,7 +344,7 @@ def getAllCharAuthData(PORT, authors, doc, documentTable = 'document_cnn', vocab
 
     return df
 
-def getWordGenderData(PORT, documentTable = 'document', chunk_size = 1000):
+def getWordGenderData(PORT, chunk_size = 1000):
     df = pd.DataFrame()
     conn = None
     output = []
@@ -404,7 +404,7 @@ def getWordGenderData(PORT, documentTable = 'document', chunk_size = 1000):
     return df
 
 
-def getWordGenderDocData(PORT, doc, documentTable = 'document', chunk_size = 1000):
+def getWordGenderDocData(PORT, doc, chunk_size = 1000):
     df = pd.DataFrame()
     conn = None
     output = []

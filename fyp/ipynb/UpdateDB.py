@@ -241,3 +241,72 @@ def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
     finally:
         if conn is not None:
             conn.close()
+
+
+def checkOldGender(port = 3300, doc_id = 0):
+
+    conn = None
+
+    try:
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests", port = 3300)
+
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM readingsOldGender WHERE doc_id = " + str(doc_id) + " ;"
+
+        cursor.execute(query)
+
+        print("Execution completed")
+        rows = cursor.fetchall()
+
+        if (len(rows) > 0):
+            return True
+        else:
+            return False
+
+    except MySQLdb.Error as e:
+        if conn:
+            conn.rollback()
+        print('Error %s' % e)
+        sys.exit(1)
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+def updateresultOldGender(port = 3300, doc_id = 0, test_acc = 0.0, test_bin = 0.0):
+
+    conn = None
+
+    try:
+        conn = MySQLdb.connect(host="127.0.0.1", user="ninadt", passwd="ninadt", db="tests", port = 3300)
+
+        cursor = conn.cursor()
+
+        query = "SELECT * FROM readingsOldGender WHERE doc_id = " + str(doc_id) + " ;"
+
+        cursor.execute(query)
+
+        print("Execution completed")
+        rows = cursor.fetchall()
+
+        if (len(rows) > 0):
+            return False
+        else:
+            cursor.execute("""INSERT INTO readingsOldGender
+            (doc_id, test_acc, test_bin)
+            VALUES (%s, %s, %s); """,
+                           (str(doc_id), str(test_acc), str(test_bin)))
+            conn.commit()
+
+            return True
+
+    except MySQLdb.Error as e:
+        if conn:
+            conn.rollback()
+        print('Error %s' % e)
+        sys.exit(1)
+
+    finally:
+        if conn is not None:
+            conn.close()

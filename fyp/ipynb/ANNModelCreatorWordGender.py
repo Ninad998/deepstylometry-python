@@ -305,7 +305,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
     filepath="gender-cnn-lstm-word.hdf5"
     
     model.load_weights(filepath)
-
+    
     model.compile(loss='categorical_crossentropy', optimizer=rms,
                   metrics=['accuracy'])
 

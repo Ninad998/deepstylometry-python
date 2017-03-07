@@ -44,7 +44,9 @@ def checkOldCNN(doc_id = 0, candidate = 4, dimensions = 200,
 
 def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200,
                        samples = 300, iterations = 180, dropout = 0.2,
-                       train_acc = 0.0, val_acc = 0.0, test = 'Error'):
+                       train_acc = 0.0, val_acc = 0.0,
+                       test_acc = 0.0, test_bin = 0.0, 
+                       test = 'Error'):
 
     conn = None
 
@@ -67,11 +69,13 @@ def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200,
             return False
         else:
             cursor.execute("""INSERT INTO readingsOldCNN
-            (doc_id, candidates, dimensions, samples, iterations, dropout, train_acc, val_acc, test)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s); """,
+            (doc_id, candidates, dimensions, samples, iterations, dropout, train_acc, val_acc, test_acc, test_bin, test)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), str(dimensions),
                             str(samples), str(iterations), str(dropout),
-                            str(train_acc), str(val_acc), str(test)))
+                            str(train_acc), str(val_acc),
+                            str(test_acc), str(test_bin),
+                            str(test)))
             conn.commit()
 
             return True
@@ -243,8 +247,7 @@ def updateresultOldML(port = 3300, doc_id = 0, samples = 300,
     finally:
         if conn is not None:
             conn.close()
-
-
+            
 def checkOldGender(port = 3300, doc_id = 0):
 
     conn = None
@@ -276,7 +279,7 @@ def checkOldGender(port = 3300, doc_id = 0):
         if conn is not None:
             conn.close()
 
-def updateresultOldGender(port = 3300, doc_id = 0, test_acc = 0.0, test_bin = 0.0):
+def updateresultOldGender(port = 3300, doc_id = 0, test_acc = 0.0, test_bin = 0.0, pred = 'N'):
 
     conn = None
 
@@ -296,9 +299,9 @@ def updateresultOldGender(port = 3300, doc_id = 0, test_acc = 0.0, test_bin = 0.
             return False
         else:
             cursor.execute("""INSERT INTO readingsOldGender
-            (doc_id, test_acc, test_bin)
-            VALUES (%s, %s, %s); """,
-                           (str(doc_id), str(test_acc), str(test_bin)))
+            (doc_id, test_acc, test_bin, pred)
+            VALUES (%s, %s, %s, %s); """,
+                           (str(doc_id), str(test_acc), str(test_bin), str(pred)))
             conn.commit()
 
             return True

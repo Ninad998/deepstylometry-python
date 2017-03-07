@@ -167,7 +167,7 @@ def updateresultOldCNNCV(doc_id = 0, candidate = 4, dimensions = 200,
             conn.close()
 
 
-def checkOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
+def checkOldML(port = 3300, doc_id = 0, samples = 300,
                test = 'Error'):
 
     conn = None
@@ -177,7 +177,7 @@ def checkOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
 
         cursor = conn.cursor()
 
-        query = "SELECT * FROM readingsOldML WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query = "SELECT * FROM readingsOldML WHERE doc_id = " + str(doc_id)
         query += " AND samples = " + str(samples)
         query += " AND test LIKE '%" + str(test) + "%' ;"
 
@@ -201,7 +201,7 @@ def checkOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
         if conn is not None:
             conn.close()
 
-def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300, 
+def updateresultOldML(port = 3300, doc_id = 0, samples = 300, 
                       train_acc = 0.0, val_acc = 0.0, test_acc = 0.0,
                       test_bin = 0.0, test = 'Error'):
 
@@ -212,7 +212,7 @@ def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
 
         cursor = conn.cursor()
         
-        query = "SELECT * FROM readingsOldML WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query = "SELECT * FROM readingsOldML WHERE doc_id = " + str(doc_id)
         query += " AND samples = " + str(samples)
         query += " AND test LIKE '%" + str(test) + "%' ;"
 
@@ -225,10 +225,10 @@ def updateresultOldML(port = 3300, doc_id = 0, candidate = 4, samples = 300,
             return False
         else:
             cursor.execute("""INSERT INTO readingsOldML
-            (doc_id, candidates, samples, train_acc, val_acc, test_acc, test_bin, test)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
-                           (str(doc_id), str(candidate), str(samples), 
-                            str(train_acc), str(val_acc), str(test_acc), str(test_bin), 
+            (doc_id, samples, train_acc, val_acc, test_acc, test_bin, test)
+            VALUES (%s, %s, %s, %s, %s, %s, %s); """,
+                           (str(doc_id), str(samples), str(train_acc), 
+                            str(val_acc), str(test_acc), str(test_bin), 
                             str(test)))
             conn.commit()
 

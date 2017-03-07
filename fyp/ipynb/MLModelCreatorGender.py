@@ -7,7 +7,7 @@ import os
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
-from sklearn.pipeline import Pipeline 
+from sklearn.pipeline import Pipeline
 import pandas as pd
 import numpy as np
 np.random.seed(123)
@@ -92,10 +92,10 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, VALIDATION_SPLIT = 0.2)
     return (trainX, trainY, valX, valY)
 
 def compileModel(algo):
-    
+
     ct_multi_nb = Pipeline([
         ("tfidf_vectorizer", CountVectorizer(ngram_range = (1, 4), stop_words = None, lowercase = False,
-                                             max_features = 40000)), 
+                                             max_features = 40000)),
         ("linear svc", MultinomialNB())
     ])
 
@@ -103,21 +103,21 @@ def compileModel(algo):
     tfidf_multi_nb = Pipeline([
         ("tfidf_vectorizer", TfidfVectorizer(ngram_range = (1, 4), stop_words = None, lowercase = False,
                                              max_features = 40000, use_idf = True, smooth_idf = True,
-                                             sublinear_tf = True)), 
+                                             sublinear_tf = True)),
         ("linear svc", MultinomialNB())
     ])
 
 
     ct_svc = Pipeline([
         ("tfidf_vectorizer", CountVectorizer(ngram_range = (1, 4), stop_words = None, lowercase = False,
-                                             max_features = 40000)), 
+                                             max_features = 40000)),
         ("linear svc", SVC(kernel="linear"))
     ])
 
     tfidf_svc = Pipeline([
         ("tfidf_vectorizer", TfidfVectorizer(ngram_range = (1, 4), stop_words = None, lowercase = False,
                                              max_features = 40000, use_idf = True, smooth_idf = True,
-                                             sublinear_tf = True)), 
+                                             sublinear_tf = True)),
         ("linear svc", SVC(kernel="linear"))
     ])
 
@@ -126,34 +126,34 @@ def compileModel(algo):
 
     elif algo == 'tfidf_multi_nb':
         return tfidf_multi_nb
-    
+
     elif algo == 'ct_svc':
         return ct_svc
-    
+
     elif algo == 'tfidf_svc':
         return tfidf_svc
-    
+
     else:
         print("Model not found")
         return None
 
 def fitModel(model, trainX, trainY, valX, valY):
-    
+
     model.fit(trainX, trainY)
-    
+
     train_acc = model.score(trainX, trainY)
-    
+
     val_acc = model.score(valX, valY)
-    
+
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
-    
+
     print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
 
     return (model, train_acc, val_acc)
 
 def predictModel(model, testX):
     # Function to take input of data and return prediction model
-    predY = np.array(model.predict(testX))
+    predY = model.predict_proba(testX)
     predYList = predY[:]
     entro = []
     flag = False

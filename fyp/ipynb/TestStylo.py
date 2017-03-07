@@ -1,85 +1,96 @@
-
-authorList = [11, 18, 80, 88, 64, 44, 91, 19, 97]
-
-doc_id = 1
-
-parameters = {
-    'candidate': [2, 3, 4, 5, 6, 7, 8, 9],
-    'samples': [320, 1600, 3200],
-    'dropout': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
-    'dimensions': [50, 100, 200],
-    'iterations': [10, 20, 40, 80, 120, 240],
-    'cv': [320, 1600]#, 3200],
-}
-
-level = 'word'
+import pandas as pd
+df = pd.read_csv('queryset_CNN.csv')
+print(df.shape)
+print(df.dtypes)
 
 output = []
+for index, row in df.iterrows():
+    doc_id = row.doc_id
 
-for idxp, paralist in parameters.iteritems():
-    if idxp == 'candidate':
-        for idxl, val in enumerate(paralist):
-            
-            authorList = [11, 18, 80, 88, 64, 44, 91, 19, 97]
-            
-            doc_id = 1
+    author_id = row.author_id
 
-            candidate = val
+    import ast
+    authorList = ast.literal_eval(row.authorList)
 
-            test = idxp # change before run
+    candidate = len(authorList)
 
-            level = "word"
+    test = "batch10" # change before run
 
-            iterations = 30
+    level = "word"
 
-            dropout = 0.5
+    iterations = 30
 
-            samples = 3200
+    dropout = 0.5
 
-            dimensions = 200
+    samples = 3200
 
-            # loc = authorList.index(author_id)
+    dimensions = 200
 
-            printstate = (("doc_id = %s, candidate = %s, ") % (str(doc_id), str(candidate)))
-            printstate += (("dimensions = %s, samples = %s, ") % (str(dimensions), str(samples)))
-            printstate += (("\niterations = %s, dropout = %s, test = %s") % (str(iterations), str(dropout), str(test)))
+    loc = authorList.index(author_id)
 
-            print("Current test: %s" % (str(printstate)))
-            
-            print("Running: %12s" % (str(printstate)))
-            
-            import StyloNeural as Stylo
-            (labels_index, train_acc_list, val_acc_list, samples) = Stylo.getResults(
-                doc_id = doc_id, authorList = authorList[:candidate + 1], 
-                level = level, glove = '../../glove/', dimensions = dimensions, 
-                samples = samples, nb_epoch = iterations, dropout = dropout, batch_size = 10 )
-            
-            output.append([doc_id, candidate, dimensions, samples, 
-                           iterations, dropout, train_acc, val_acc, 
-                           test])
-            
-            del Stylo
+    printstate = (("doc_id = %s, candidate = %s, ") % (str(doc_id), str(candidate)))
+    printstate += (("dimensions = %s, samples = %s, ") % (str(dimensions), str(samples)))
+    printstate += (("\niterations = %s, dropout = %s, test = %s") % (str(iterations), str(dropout), str(test)))
 
-            from keras import backend as K
-            K.clear_session()
+    print("Current test: %s" % (str(printstate)))
 
-            import time
-            time.sleep(10)
+    """
+    import UpdateDB as db
 
-            from IPython.display import clear_output
-            clear_output()
+    case = db.checkOldCNN(doc_id = doc_id, candidate = candidate, dimensions = dimensions, samples = samples,
+                          iterations = iterations, dropout = dropout, test = test)
+
+    if case == False:
+    """
+    print("Running: %12s" % (str(printstate)))
+
+    import StyloNeural as Stylo
+    (labels_index, history, train_acc, val_acc, samples) = Stylo.getResults(
+        doc_id = doc_id, authorList = authorList[:],
+        level = level, glove = '../../glove/', dimensions = dimensions,
+        samples = samples, nb_epoch = iterations, dropout = dropout, batch_size = 10 )
+
+    (predY, testY) = Stylo.getTestResults(
+        doc_id = doc_id, authorList = authorList[:], labels_index = labels_index, 
+        level = level, glove = '../../glove/', dimensions = dimensions,
+        samples = samples, nb_epoch = iterations, dropout = dropout, batch_size = 10 )
+
+    loc = testY
+
+    test_acc = predY[loc]
+
+    test_bin = 0
+
+    if(predY.tolist().index(max(predY)) == testY):
+        test_bin = 1
+
+    output.append([doc_id, candidate, dimensions, samples,
+                   iterations, dropout,  train_acc, val_acc,
+                   test_acc, test_bin, test])
+
+    """
+    import UpdateDB as db
+    case = db.updateresultOldCNN(doc_id = doc_id, candidate = candidate, dimensions = dimensions,
+                                 samples = samples, iterations = iterations, dropout = dropout,
+                                 train_acc = train_acc, val_acc = val_acc,
+                                 test_acc = test_acc, test_bin = test_bin,
+                                 test = test)
+    """
+    del Stylo
+
+    from keras import backend as K
+    K.clear_session()
+
+    import time
+    time.sleep(10)
+
+# else:
+#     print("Skipped: %12s" % (str(printstate)))
+
 
 import pandas as pd
-df = pd.DataFrame(output, columns=["doc_id", "candidates", "dimensions", "samples",
-                                   "iterations", "dropout", "train_acc", "val_acc", 
-                                   "test"])
-
-# df.loc[i] = [randint(-1,1) for n in range(3)]
-
-df.to_csv('out.csv', encoding='utf-8')
-
-from keras import backend as K
-K.clear_session()
+df = pd.DataFrame(output)
+df.to_csv("styloout.csv", index = False, encoding='utf-8')
 
 import time
 time.sleep(10)

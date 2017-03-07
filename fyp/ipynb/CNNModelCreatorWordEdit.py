@@ -135,9 +135,9 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
 
 def makeTokenizer():
     global tokenizer, word_index
-    
+
     import cPickle as pickle
-    
+
     with open('tokenizer.pickle', 'rb') as handle:
         tokenizer = pickle.load(handle)
 
@@ -215,19 +215,25 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     model.add(graph)                                           # Concat the ngram convolutions
 
-    model.add(Dropout(DROP_OUT))                               # Dropout 50%
-    
-    model.add(LSTM(                                            # Layer 7,  Output Size: 30
-        output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='tanh'))                                    # Activation function to use
-
-    model.add(Dropout(DROP_OUT))                               # Layer 8,  Dropout fraction to use: 0.4
+    model.add(Dropout(DROP_OUT))                               # Layer 3a,  Dropout fraction to use: 0.4
 
     model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
         activation='relu'))                                    # Activation function to use
 
-    model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
+    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
+
+    model.add(LSTM(                                            # Layer 4,  Output Size: 30
+        output_dim=LSTM_FEATURE,                               # Output dimension
+        activation='relu'))                                    # Activation function to use
+
+    model.add(Dropout(DROP_OUT))                               # Layer 5a,  Dropout fraction to use: 0.4
+
+    model.add(Dense(                                           # Layer 5,  Output Size: 256
+        output_dim=DENSE_FEATURE,                              # Output dimension
+        activation='relu'))                                    # Activation function to use
+
+    model.add(Dense(                                           # Layer 6,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
         activation='softmax'))                                 # Activation function to use
 
@@ -279,28 +285,36 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     model.add(graph)                                           # Concat the ngram convolutions
 
-    model.add(Dropout(DROP_OUT))                               # Dropout 50%
-    
-    model.add(LSTM(                                            # Layer 7,  Output Size: 30
-        output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='tanh'))                                    # Activation function to use
+    model.add(Flatten())
 
-    model.add(Dropout(DROP_OUT))                               # Layer 8,  Dropout fraction to use: 0.4
+    model.add(Dropout(DROP_OUT))                               # Layer 3a,  Dropout fraction to use: 0.4
 
     model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
         activation='relu'))                                    # Activation function to use
 
-    model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
+    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
+
+    model.add(LSTM(                                            # Layer 4,  Output Size: 30
+        output_dim=LSTM_FEATURE,                               # Output dimension
+        activation='relu'))                                    # Activation function to use
+
+    model.add(Dropout(DROP_OUT))                               # Layer 5a,  Dropout fraction to use: 0.4
+
+    model.add(Dense(                                           # Layer 5,  Output Size: 256
+        output_dim=DENSE_FEATURE,                              # Output dimension
+        activation='relu'))                                    # Activation function to use
+
+    model.add(Dense(                                           # Layer 6,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
         activation='softmax'))                                 # Activation function to use
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
-    
+
     filepath="gender-cnn-ngrams-lstm-word.hdf5"
-    
+
     model.load_weights(filepath)
-    
+
     model.compile(loss='categorical_crossentropy', optimizer=sgd,
                   metrics=['accuracy'])
 
@@ -321,19 +335,19 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
 
     # load weights from the best checkpoint
     model.load_weights(filepath)
-    
+
     # Compile model again (required to make predictions)
     model.compile(loss='categorical_crossentropy', optimizer=rms,
                   metrics=['accuracy'])
 
     train_acc = (model.evaluate(trainX, trainY))[1]
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
-    
+
     val_acc = (model.evaluate(valX, valY))[1]
     print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
-    
+
     import cPickle as pickle
-    
+
     with open('tokenizer.pickle', 'wb') as handle:
         pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

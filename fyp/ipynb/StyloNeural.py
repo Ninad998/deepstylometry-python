@@ -12,7 +12,7 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNModelCreatorWordEdit as md
+            import CNNModelCreatorWord as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 
@@ -46,17 +46,17 @@ def getTestResults(authorList = None, doc_id = None, labels_index = None,chunk_s
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNModelCreatorWordEdit as md
+            import CNNModelCreatorWord as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 
         embeddings_index = md.readVectorData(embedfile, GLOVE_DIR=glove)
-
+        
         md.makeTokenizer()
 
         (testX, testY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)
 
-        (testX, testY) = md.preProcessTest(testX, labels_index, textY, chunk_size = chunk_size)
+        (testX, testY) = md.preProcessTest(testX, labels_index, testY, chunk_size = chunk_size)
 
         embedding_matrix = None
 

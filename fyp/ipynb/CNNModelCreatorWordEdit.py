@@ -245,9 +245,9 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     print("Done compiling.")
     return model
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', LSTM_FEATURE = 30, DENSE_FEATURE = 256, DROP_OUT = 0.5,
-                 LEARNING_RATE=0.01, MOMENTUM=0.9):
+def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                   BORDER_MODE = 'valid', LSTM_FEATURE = 30, DENSE_FEATURE = 256, DROP_OUT = 0.5,
+                   LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -323,7 +323,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     filepath="author-cnn-ngrams-lstm-word.hdf5"
-
+    
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     callbacks_list = [checkpoint]
@@ -337,7 +337,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     model.load_weights(filepath)
 
     # Compile model again (required to make predictions)
-    model.compile(loss='categorical_crossentropy', optimizer=rms,
+    model.compile(loss='categorical_crossentropy', optimizer=sgd,
                   metrics=['accuracy'])
 
     train_acc = (model.evaluate(trainX, trainY))[1]

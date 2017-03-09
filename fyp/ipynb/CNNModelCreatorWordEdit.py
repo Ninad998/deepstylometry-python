@@ -14,7 +14,8 @@ from keras.utils.np_utils import to_categorical
 from keras.models import Sequential, Model
 from keras.layers import Embedding, Convolution1D, MaxPooling1D, Flatten
 from keras.layers import Input, Merge, Dense
-from keras.layers import LSTM
+from keras.layers import Bidirectional, LSTM
+from keras.regularizers import l1l2
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
@@ -179,55 +180,45 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
                  BORDER_MODE = 'valid', LSTM_FEATURE = 30, DENSE_FEATURE = 256, DROP_OUT = 0.5,
                  LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
-
-    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    
+    ngram_filters = [5, 4, 3]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
-
-    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
-
-    for n_gram in ngram_filters:
-        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
-            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
-            filter_length=n_gram,                              # Size of kernels, ngram
-            activation='relu')(graph_in)                       # Activation function to use
-
-        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
-            pool_length=3)(conv)                               # Size of kernels
-
-        flat = Flatten()(pool)
-
-        convs.append(flat)
-
+    
     model = Sequential()
-
+    
     model.add(Embedding(                                       # Layer 0, Start
         input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                              # Dimensions to generate
         weights=[embedding_matrix],                            # Initialize word weights
         input_length=chunk_size,                               # Define length to input sequences in the first layer
         trainable=False))                                      # Disable weight changes during training
-
+    
     model.add(Dropout(0.25))                                   # Dropout 25%
-
-    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
-
-    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
-
-    model.add(graph)                                           # Concat the ngram convolutions
-
-    model.add(Dropout(DROP_OUT))                               # Layer 3a,  Dropout fraction to use: 0.4
-
-    model.add(Dense(                                           # Layer 3,  Output Size: 256
-        output_dim=DENSE_FEATURE,                              # Output dimension
+    
+    model.add(Convolution1D(                                   # Layer 1,  Features: 30, Kernel Size: 3
+        nb_filter=CONVOLUTION_FEATURE,                         # Number of kernels or number of filters to generate
+        filter_length=3,                                       # Size of kernels
+        border_mode=BORDER_MODE,                               # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                    # Activation function to use
-
-    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
-
+    
+    model.add(MaxPooling1D(                                    # Layer 2,  Max Pooling: 3
+        pool_length=2))                                        # Size of kernels
+    
+    model.add(LSTM(                                            # Layer 3,  Output Size: 30
+        output_dim=LSTM_FEATURE,                               # Output dimension
+        activation='tanh',                                     # Activation function to use
+        dropout_W=0.1,
+        dropout_U=0.1, 
+        return_sequences=True))
+    
     model.add(LSTM(                                            # Layer 4,  Output Size: 30
         output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='relu'))                                    # Activation function to use
+        activation='tanh',                                     # Activation function to use
+        dropout_W=0.1,
+        dropout_U=0.1, 
+        return_sequences=False))
 
-    model.add(Dropout(DROP_OUT))                               # Layer 5a,  Dropout fraction to use: 0.4
+    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
 
     model.add(Dense(                                           # Layer 5,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
@@ -250,56 +241,44 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
                    LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
-    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    ngram_filters = [5, 4, 3]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
-
-    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
-
-    for n_gram in ngram_filters:
-        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
-            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
-            filter_length=n_gram,                              # Size of kernels, ngram
-            activation='relu')(graph_in)                       # Activation function to use
-
-        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
-            pool_length=3)(conv)                               # Size of kernels
-
-        flat = Flatten()(pool)
-
-        convs.append(flat)
-
+    
     model = Sequential()
-
+    
     model.add(Embedding(                                       # Layer 0, Start
         input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                              # Dimensions to generate
         weights=[embedding_matrix],                            # Initialize word weights
         input_length=chunk_size,                               # Define length to input sequences in the first layer
         trainable=False))                                      # Disable weight changes during training
-
+    
     model.add(Dropout(0.25))                                   # Dropout 25%
-
-    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
-
-    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
-
-    model.add(graph)                                           # Concat the ngram convolutions
-
-    model.add(Flatten())
-
-    model.add(Dropout(DROP_OUT))                               # Layer 3a,  Dropout fraction to use: 0.4
-
-    model.add(Dense(                                           # Layer 3,  Output Size: 256
-        output_dim=DENSE_FEATURE,                              # Output dimension
+    
+    model.add(Convolution1D(                                   # Layer 1,  Features: 30, Kernel Size: 3
+        nb_filter=CONVOLUTION_FEATURE,                         # Number of kernels or number of filters to generate
+        filter_length=3,                                       # Size of kernels
+        border_mode=BORDER_MODE,                               # Border = 'valid', cause kernel to reduce dimensions
         activation='relu'))                                    # Activation function to use
-
-    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
-
+    
+    model.add(MaxPooling1D(                                    # Layer 2,  Max Pooling: 3
+        pool_length=2))                                        # Size of kernels
+    
+    model.add(LSTM(                                            # Layer 3,  Output Size: 30
+        output_dim=LSTM_FEATURE,                               # Output dimension
+        activation='tanh',                                     # Activation function to use
+        dropout_W=0.1,
+        dropout_U=0.1, 
+        return_sequences=True))
+    
     model.add(LSTM(                                            # Layer 4,  Output Size: 30
         output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='relu'))                                    # Activation function to use
+        activation='tanh',                                     # Activation function to use
+        dropout_W=0.1,
+        dropout_U=0.1, 
+        return_sequences=False))
 
-    model.add(Dropout(DROP_OUT))                               # Layer 5a,  Dropout fraction to use: 0.4
+    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
 
     model.add(Dense(                                           # Layer 5,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
@@ -311,7 +290,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
 
-    filepath="gender-cnn-ngrams-lstm-word.hdf5"
+    filepath="author-cnn-lstm-word.hdf5"
 
     model.load_weights(filepath)
 
@@ -322,7 +301,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
     return model
 
 def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
-    filepath="author-cnn-ngrams-lstm-word.hdf5"
+    filepath="author-cnn-lstm-word.hdf5"
     
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 

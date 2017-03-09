@@ -28,6 +28,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
                             local_bind_address=('localhost', 5400)):
         textToUse = DatabaseQuery.getWordAuthData(5400, authorList, doc_id,
                                                   documentTable = documentTable, chunk_size = chunk_size)
+        
     labels = []
     texts = []
     size = []
@@ -36,6 +37,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
         current = textToUse.loc[textToUse['author_id'] == auth]
         size.append(current.shape[0])
         print("Author: %5s  Size: %5s" % (auth, current.shape[0]))
+        
     print("Min: %s" % (min(size)))
     print("Max: %s" % (max(size)))
 
@@ -45,10 +47,12 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
         current = textToUse.loc[textToUse['author_id'] == auth]
         if (samples > min(size)):
             samples = min(size)
+            
         current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
         labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
+        
     labels_index = {}
     labels_index[0] = 0
     for i, auth in enumerate(authorList):
@@ -74,6 +78,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
                             local_bind_address=('localhost', 5400)):
         textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable,
                                                  chunk_size = chunk_size)
+        
     labels = []
     texts = []
     for index, row in textToUse.iterrows():
@@ -187,5 +192,7 @@ def predictModel(model, testX, authorList):
         predval = 0.0
         predval = predcount/tot
         predYprob.insert(pred, predval)
+    
+    predYprob = np.array(predYprob)
     
     return (predYprob)

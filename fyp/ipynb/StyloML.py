@@ -34,7 +34,7 @@ def getTestResults(algo, authorList = None, doc_id = None, labels_index = None, 
             
         model = md.recompileModel(algo)
         
-        (predY) = md.predictModel(model, testX)
+        (predY) = md.predictModel(model, testX, authorList)
         
         del model
 

@@ -21,7 +21,6 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
-    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -68,7 +67,6 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
-    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -143,7 +141,18 @@ def compileModel(algo):
         print("Model not found")
         return None
 
-def fitModel(model, trainX, trainY, valX, valY):
+def recompileModel(algo):
+    
+    import cPickle as pickle
+    
+    algoloadname = str(algo + '.pickle')
+    
+    with open(algoloadname, 'rb') as handle:
+        model = pickle.load(handle)
+    
+    return model
+
+def fitModel(model, algo, trainX, trainY, valX, valY):
     
     model.fit(trainX, trainY)
     
@@ -153,33 +162,30 @@ def fitModel(model, trainX, trainY, valX, valY):
     
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
     
-    print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
+    print("\nFinal Validation Accuracy: %.2f" % (val_acc * 100))
+    
+    import cPickle as pickle
+    
+    algosavename = str(algo + '.pickle')
+    
+    with open(algosavename, 'wb') as handle:
+        pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return (model, train_acc, val_acc)
 
-def predictModel(model, testX):
+def predictModel(model, testX, authorList):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX))
-    predYList = predY[:]
-    entro = []
-    flag = False
-    import math
-    for row in predY:
-        entroval = 0
-        for i in row:
-            if(i <= 0):
-                flag = True
-                pass
-            else:
-                entroval += (i * (math.log(i , 2)))
-        entroval = -1 * entroval
-        entro.append(entroval)
-    if(flag == False):
-        yx = zip(entro, predY)
-        yx = sorted(yx, key = lambda t: t[0])
-        newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
-        predY = np.mean(predYEntroList, axis=0)
-    else:
-        predY = np.mean(predYList, axis=0)
-    return (predYList, predY)
+
+    unique, counts = np.unique(predY, return_counts=True)
+
+    tot = len(predY)
+
+    predYprob = [0.0] * len(authorList)
+
+    for pred, predcount in zip(unique, counts):
+        predval = 0.0
+        predval = predcount/tot
+        predYprob.insert(pred, predval)
+    
+    return (predYprob)

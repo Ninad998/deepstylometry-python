@@ -30,7 +30,7 @@ def getTestResults(algo, authorList = None, doc_id = None, labels_index = None, 
         
         print("Algo: %s" % (str(algo)))
     
-        (testX, textY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)\
+        (testX, testY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)\
             
         model = md.recompileModel(algo)
         
@@ -38,4 +38,4 @@ def getTestResults(algo, authorList = None, doc_id = None, labels_index = None, 
         
         del model
 
-        return (labels_index, textY, predY, samples)
+        return (labels_index, testY, predY, samples)

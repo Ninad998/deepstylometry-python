@@ -129,7 +129,7 @@ def compileModel(algo):
                                              sublinear_tf = True)), 
         ("linear svc", SVC(kernel="linear"))
     ])
-
+    
     if algo == 'ct_multi_nb':
         return ct_multi_nb
 

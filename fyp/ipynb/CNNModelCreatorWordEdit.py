@@ -14,11 +14,11 @@ from keras.utils.np_utils import to_categorical
 from keras.models import Sequential, Model
 from keras.layers import Embedding, Convolution1D, MaxPooling1D, Flatten
 from keras.layers import Input, Merge, Dense
-from keras.layers import Bidirectional, LSTM
-from keras.regularizers import l1l2
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
 
 databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
 documentTable = 'document'
@@ -110,8 +110,9 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
-def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
+def preProcessTrainVal(texts, labels, ml = False, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
     global tokenizer, word_index
+    
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
     tokenizer.fit_on_texts(texts)
@@ -121,14 +122,18 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
     print('Found %s unique tokens.' % len(word_index))
 
     data = pad_sequences(sequences, maxlen=chunk_size)
-
-    labels = to_categorical(np.asarray(labels))
+    
+    if not ml:
+        labels = to_categorical(np.asarray(labels))
+        
+    labels = np.asarray(labels)
+    
     print('Shape of data tensor:', data.shape)
     print('Shape of label tensor:', labels.shape)
 
     # split the data into a training set and a validation set
     from sklearn.model_selection import train_test_split
-    trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT)
+    trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT, random_state = 123)
 
     del data, labels
 
@@ -177,54 +182,51 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', LSTM_FEATURE = 30, DENSE_FEATURE = 256, DROP_OUT = 0.5,
-                 LEARNING_RATE=0.01, MOMENTUM=0.9):
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
-    
-    ngram_filters = [5, 4, 3]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
-    
+
+    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
+
+    for n_gram in ngram_filters:
+        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
+            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
+            filter_length=n_gram,                              # Size of kernels, ngram
+            activation='relu')(graph_in)                       # Activation function to use
+
+        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
+            pool_length=3)(conv)                               # Size of kernels
+
+        flat = Flatten()(pool)
+
+        convs.append(flat)
+
     model = Sequential()
-    
+
     model.add(Embedding(                                       # Layer 0, Start
         input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                              # Dimensions to generate
         weights=[embedding_matrix],                            # Initialize word weights
         input_length=chunk_size,                               # Define length to input sequences in the first layer
         trainable=False))                                      # Disable weight changes during training
-    
+
     model.add(Dropout(0.25))                                   # Dropout 25%
-    
-    model.add(Convolution1D(                                   # Layer 1,  Features: 30, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                         # Number of kernels or number of filters to generate
-        filter_length=3,                                       # Size of kernels
-        border_mode=BORDER_MODE,                               # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                    # Activation function to use
-    
-    model.add(MaxPooling1D(                                    # Layer 2,  Max Pooling: 3
-        pool_length=2))                                        # Size of kernels
-    
-    model.add(LSTM(                                            # Layer 3,  Output Size: 30
-        output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='tanh',                                     # Activation function to use
-        dropout_W=0.1,
-        dropout_U=0.1, 
-        return_sequences=True))
-    
-    model.add(LSTM(                                            # Layer 4,  Output Size: 30
-        output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='tanh',                                     # Activation function to use
-        dropout_W=0.1,
-        dropout_U=0.1, 
-        return_sequences=False))
 
-    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
+    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
 
-    model.add(Dense(                                           # Layer 5,  Output Size: 256
+    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
+
+    model.add(graph)                                           # Concat the ngram convolutions
+
+    model.add(Dropout(DROP_OUT))                               # Dropout 50%
+
+    model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
         activation='relu'))                                    # Activation function to use
 
-    model.add(Dense(                                           # Layer 6,  Output Size: Size Unique Labels, Final
+    model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
         activation='softmax'))                                 # Activation function to use
 
@@ -236,61 +238,58 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     print("Done compiling.")
     return model
 
-def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                   BORDER_MODE = 'valid', LSTM_FEATURE = 30, DENSE_FEATURE = 256, DROP_OUT = 0.5,
-                   LEARNING_RATE=0.01, MOMENTUM=0.9):
+def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                      BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
-    ngram_filters = [5, 4, 3]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
-    
+
+    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
+
+    for n_gram in ngram_filters:
+        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
+            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
+            filter_length=n_gram,                              # Size of kernels, ngram
+            activation='relu')(graph_in)                       # Activation function to use
+
+        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
+            pool_length=3)(conv)                               # Size of kernels
+
+        flat = Flatten()(pool)
+
+        convs.append(flat)
+
     model = Sequential()
-    
+
     model.add(Embedding(                                       # Layer 0, Start
         input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                              # Dimensions to generate
         weights=[embedding_matrix],                            # Initialize word weights
         input_length=chunk_size,                               # Define length to input sequences in the first layer
         trainable=False))                                      # Disable weight changes during training
-    
+
     model.add(Dropout(0.25))                                   # Dropout 25%
-    
-    model.add(Convolution1D(                                   # Layer 1,  Features: 30, Kernel Size: 3
-        nb_filter=CONVOLUTION_FEATURE,                         # Number of kernels or number of filters to generate
-        filter_length=3,                                       # Size of kernels
-        border_mode=BORDER_MODE,                               # Border = 'valid', cause kernel to reduce dimensions
-        activation='relu'))                                    # Activation function to use
-    
-    model.add(MaxPooling1D(                                    # Layer 2,  Max Pooling: 3
-        pool_length=2))                                        # Size of kernels
-    
-    model.add(LSTM(                                            # Layer 3,  Output Size: 30
-        output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='tanh',                                     # Activation function to use
-        dropout_W=0.1,
-        dropout_U=0.1, 
-        return_sequences=True))
-    
-    model.add(LSTM(                                            # Layer 4,  Output Size: 30
-        output_dim=LSTM_FEATURE,                               # Output dimension
-        activation='tanh',                                     # Activation function to use
-        dropout_W=0.1,
-        dropout_U=0.1, 
-        return_sequences=False))
 
-    model.add(Dropout(DROP_OUT))                               # Layer 4a,  Dropout fraction to use: 0.4
+    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
 
-    model.add(Dense(                                           # Layer 5,  Output Size: 256
+    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
+
+    model.add(graph)                                           # Concat the ngram convolutions
+
+    model.add(Dropout(DROP_OUT))                               # Dropout 50%
+
+    model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
         activation='relu'))                                    # Activation function to use
 
-    model.add(Dense(                                           # Layer 6,  Output Size: Size Unique Labels, Final
+    model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
         activation='softmax'))                                 # Activation function to use
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
-
-    filepath="author-cnn-lstm-word.hdf5"
+    
+    filepath="author-cnn-ngrams-word.hdf5"
 
     model.load_weights(filepath)
 
@@ -300,8 +299,87 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
     print("Done compiling.")
     return model
 
-def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
-    filepath="author-cnn-lstm-word.hdf5"
+def getMLModel(algo):
+    
+    multi_nb = MultinomialNB()
+    
+    svc = SVC(kernel="linear")
+    
+    if algo == 'multi_nb':
+        return multi_nb
+
+    elif algo == 'svc':
+        return svc
+    
+    else:
+        print("Model not found")
+        return None
+
+
+def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 100, chunk_size = 1000,
+                     CONVOLUTION_FEATURE = 256, BORDER_MODE = 'valid', LEARNING_RATE=0.01, MOMENTUM=0.9):
+    global sgd
+    
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    convs = []
+    
+    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
+    
+    for n_gram in ngram_filters:
+        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
+            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
+            filter_length=n_gram,                              # Size of kernels, ngram
+            activation='relu',                                 # Activation function to use
+            trainable=False)(graph_in)                         # Disable weight changes during training
+        
+        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
+            pool_length=3,                                     # Size of kernels
+            trainable=False)(conv)                             # Disable weight changes during training
+        
+        flat = Flatten()(pool)
+        
+        convs.append(flat)
+        
+    feature_model = Sequential()
+    
+    feature_model.add(Embedding(                               # Layer 0, Start
+        input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
+        output_dim=EMBEDDING_DIM,                              # Dimensions to generate
+        weights=[embedding_matrix],                            # Initialize word weights
+        input_length=chunk_size,                               # Define length to input sequences in the first layer
+        trainable=False))                                      # Disable weight changes during training
+    
+    feature_model.add(Dropout(0.25))                           # Dropout 25%
+    
+    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
+    
+    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
+    
+    feature_model.add(graph)                                   # Concat the ngram convolutions
+    
+    feature_model.layers[1].set_weights(model.layers[1].get_weights())
+    
+    sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
+    
+    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+                  metrics=['accuracy'])
+    
+    mlmodel = getMLModel(algo)
+    
+    if not new:
+        import cPickle as pickle
+        
+        algoloadname = str(algo + '.pickle')
+        
+        with open(algoloadname, 'rb') as handle:
+            mlmodel = pickle.load(handle)
+    
+    print("Done compiling.")
+    
+    return (feature_model, mlmodel)
+
+def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+    filepath="author-cnn-ngrams-word.hdf5"
     
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
@@ -323,7 +401,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
 
     val_acc = (model.evaluate(valX, valY))[1]
-    print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
+    print("\nFinal Validation Accuracy: %.2f" % (val_acc * 100))
 
     import cPickle as pickle
 
@@ -332,29 +410,46 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
 
     return (model, history, train_acc, val_acc)
 
-def predictModel(model, testX, batch_size=100):
+def fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY):
+    
+    trainX = feature_model.predict(trainX)
+    
+    mlmodel.fit(trainX, trainY)
+    
+    train_acc = mlmodel.score(trainX, trainY)
+    
+    valX = feature_model.predict(valX)
+    
+    val_acc = mlmodel.score(valX, valY)
+    
+    print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
+    
+    print("\nFinal Validation Accuracy: %.2f" % (val_acc * 100))
+    
+    import cPickle as pickle
+    
+    algosavename = str(algo + '.pickle')
+    
+    with open(algosavename, 'wb') as handle:
+        pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return (train_acc, val_acc)
+
+def predictModel(model, testX, authorList):
     # Function to take input of data and return prediction model
-    predY = np.array(model.predict(testX, batch_size=batch_size))
-    predYList = predY[:]
-    entro = []
-    flag = False
-    import math
-    for row in predY:
-        entroval = 0
-        for i in row:
-            if(i <= 0):
-                flag = True
-                pass
-            else:
-                entroval += (i * (math.log(i , 2)))
-        entroval = -1 * entroval
-        entro.append(entroval)
-    if(flag == False):
-        yx = zip(entro, predY)
-        yx = sorted(yx, key = lambda t: t[0])
-        newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
-        predY = np.mean(predYEntroList, axis=0)
-    else:
-        predY = np.mean(predYList, axis=0)
-    return (predYList, predY)
+    predY = np.array(model.predict(testX))
+
+    unique, counts = np.unique(predY, return_counts=True)
+
+    tot = len(predY)
+
+    predYprob = [0.0] * len(authorList)
+
+    for pred, predcount in zip(unique, counts):
+        predval = 0.0
+        predval = predcount/tot
+        predYprob.insert(pred, predval)
+    
+    predYprob = np.array(predYprob)
+    
+    return (predYprob)

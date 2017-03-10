@@ -317,7 +317,8 @@ def getMLModel(algo):
 
 
 def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 100, chunk_size = 1000,
-                     CONVOLUTION_FEATURE = 256, BORDER_MODE = 'valid', LEARNING_RATE=0.01, MOMENTUM=0.9):
+                     CONVOLUTION_FEATURE = 256, BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, 
+                     LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
     
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -354,15 +355,23 @@ def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 
     out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
     
     graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
-    
-    feature_model.add(graph)                                   # Concat the ngram convolutions
+
+    model.add(graph)                                           # Concat the ngram convolutions
+
+    model.add(Dropout(DROP_OUT))                               # Dropout 50%
+
+    model.add(Dense(                                           # Layer 3,  Output Size: 256
+        output_dim=DENSE_FEATURE,                              # Output dimension
+        activation='relu'))                                    # Activation function to use
     
     feature_model.layers[1].set_weights(model.layers[1].get_weights())
+    feature_model.layers[2].set_weights(model.layers[2].get_weights())
+    feature_model.layers[3].set_weights(model.layers[3].get_weights())
     
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
     
-    model.compile(loss='categorical_crossentropy', optimizer=sgd,
-                  metrics=['accuracy'])
+    feature_model.compile(loss='categorical_crossentropy', optimizer=sgd,
+                          metrics=['accuracy'])
     
     mlmodel = getMLModel(algo)
     
@@ -431,7 +440,7 @@ def fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY):
     algosavename = str(algo + '.pickle')
     
     with open(algosavename, 'wb') as handle:
-        pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(mlmodel, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return (train_acc, val_acc)
 

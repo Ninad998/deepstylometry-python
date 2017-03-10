@@ -44,7 +44,6 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
-    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -91,7 +90,6 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
-    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -112,7 +110,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
 
 def preProcessTrainVal(texts, labels, ml = False, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
     global tokenizer, word_index
-    
+
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
     tokenizer.fit_on_texts(texts)
@@ -122,12 +120,12 @@ def preProcessTrainVal(texts, labels, ml = False, chunk_size = 1000, MAX_NB_WORD
     print('Found %s unique tokens.' % len(word_index))
 
     data = pad_sequences(sequences, maxlen=chunk_size)
-    
+
     if not ml:
         labels = to_categorical(np.asarray(labels))
-        
+
     labels = np.asarray(labels)
-    
+
     print('Shape of data tensor:', data.shape)
     print('Shape of label tensor:', labels.shape)
 
@@ -288,7 +286,7 @@ def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size
         activation='softmax'))                                 # Activation function to use
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
-    
+
     filepath="author-cnn-ngrams-word.hdf5"
 
     model.load_weights(filepath)
@@ -300,96 +298,96 @@ def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size
     return model
 
 def getMLModel(algo):
-    
+
     multi_nb = MultinomialNB()
-    
+
     svc = SVC(kernel="linear")
-    
+
     if algo == 'multi_nb':
         return multi_nb
 
     elif algo == 'svc':
         return svc
-    
+
     else:
         print("Model not found")
         return None
 
 
 def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 100, chunk_size = 1000,
-                     CONVOLUTION_FEATURE = 256, BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, 
+                     CONVOLUTION_FEATURE = 256, BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5,
                      LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
-    
+
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
-    
+
     graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
-    
+
     for n_gram in ngram_filters:
         conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
             nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
             filter_length=n_gram,                              # Size of kernels, ngram
             activation='relu',                                 # Activation function to use
             trainable=False)(graph_in)                         # Disable weight changes during training
-        
+
         pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
             pool_length=3,                                     # Size of kernels
             trainable=False)(conv)                             # Disable weight changes during training
-        
+
         flat = Flatten()(pool)
-        
+
         convs.append(flat)
-        
+
     feature_model = Sequential()
-    
+
     feature_model.add(Embedding(                               # Layer 0, Start
         input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
         output_dim=EMBEDDING_DIM,                              # Dimensions to generate
         weights=[embedding_matrix],                            # Initialize word weights
         input_length=chunk_size,                               # Define length to input sequences in the first layer
         trainable=False))                                      # Disable weight changes during training
-    
+
     feature_model.add(Dropout(0.25))                           # Dropout 25%
-    
+
     out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
-    
+
     graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
 
-    model.add(graph)                                           # Concat the ngram convolutions
+    feature_model.add(graph)                                   # Concat the ngram convolutions
 
-    model.add(Dropout(DROP_OUT))                               # Dropout 50%
+    feature_model.add(Dropout(DROP_OUT))                       # Dropout 50%
 
-    model.add(Dense(                                           # Layer 3,  Output Size: 256
-        output_dim=DENSE_FEATURE,                              # Output dimension
-        activation='relu'))                                    # Activation function to use
-    
+    feature_model.add(Dense(                                   # Layer 3,  Output Size: 256
+                      output_dim=DENSE_FEATURE,                # Output dimension
+                      activation='relu'))                      # Activation function to use
+
     feature_model.layers[1].set_weights(model.layers[1].get_weights())
     feature_model.layers[2].set_weights(model.layers[2].get_weights())
     feature_model.layers[3].set_weights(model.layers[3].get_weights())
-    
+
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
-    
+
     feature_model.compile(loss='categorical_crossentropy', optimizer=sgd,
                           metrics=['accuracy'])
-    
+
     mlmodel = getMLModel(algo)
-    
+
     if not new:
         import cPickle as pickle
-        
+
         algoloadname = str(algo + '.pickle')
-        
+
         with open(algoloadname, 'rb') as handle:
             mlmodel = pickle.load(handle)
-    
+
     print("Done compiling.")
-    
+
     return (feature_model, mlmodel)
 
 def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     filepath="author-cnn-ngrams-word.hdf5"
-    
+
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     callbacks_list = [checkpoint]
@@ -420,25 +418,25 @@ def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     return (model, history, train_acc, val_acc)
 
 def fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY):
-    
+
     trainX = feature_model.predict(trainX)
-    
+
     mlmodel.fit(trainX, trainY)
-    
+
     train_acc = mlmodel.score(trainX, trainY)
-    
+
     valX = feature_model.predict(valX)
-    
+
     val_acc = mlmodel.score(valX, valY)
-    
+
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
-    
+
     print("\nFinal Validation Accuracy: %.2f" % (val_acc * 100))
-    
+
     import cPickle as pickle
-    
+
     algosavename = str(algo + '.pickle')
-    
+
     with open(algosavename, 'wb') as handle:
         pickle.dump(mlmodel, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -458,7 +456,7 @@ def predictModel(model, testX, authorList):
         predval = 0.0
         predval = predcount/tot
         predYprob.insert(pred, predval)
-    
+
     predYprob = np.array(predYprob)
-    
+
     return (predYprob)

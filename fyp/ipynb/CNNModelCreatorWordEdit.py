@@ -442,9 +442,12 @@ def fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY):
 
     return (train_acc, val_acc)
 
-def predictModel(model, testX, authorList):
+def predictModel(feature_model, mlmodel, testX, authorList):
     # Function to take input of data and return prediction model
-    predY = np.array(model.predict(testX))
+
+    testX = feature_model.predict(testX)
+
+    predY = np.array(mlmodel.predict(testX))
 
     unique, counts = np.unique(predY, return_counts=True)
 

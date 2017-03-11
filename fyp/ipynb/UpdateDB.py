@@ -250,7 +250,7 @@ def updateresultOldCNNDiffBoth(doc_id = 0, candidate = 4, dimensions = 200,
                             str(train_acc_cnn), str(val_acc_cnn),
                             str(test_acc_cnn), str(test_bin_cnn),
                             str(train_acc_ml), str(val_acc_ml),
-                            str(test_ac_ml), str(test_bin_ml),
+                            str(test_acc_ml), str(test_bin_ml),
                             str(test)))
             conn.commit()
 

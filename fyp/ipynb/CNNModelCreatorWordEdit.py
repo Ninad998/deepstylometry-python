@@ -457,17 +457,29 @@ def predictModel(feature_model, mlmodel, testX, authorList):
 
     predY = np.array(mlmodel.predict_proba(testX))
 
-    unique, counts = np.unique(predY, return_counts=True)
-
-    tot = len(predY)
-
-    predYprob = [0.0] * len(authorList)
-
-    for pred, predcount in zip(unique, counts):
-        predval = 0.0
-        predval = predcount/tot
-        predYprob.insert(pred, predval)
-
-    predYprob = np.array(predYprob)
-
-    return (predYprob)
+    predYList = predY[:]
+    entro = []
+    
+    flag = False
+    import math
+    for row in predY:
+        entroval = 0
+        for i in row:
+            if(i <= 0):
+                flag = True
+                pass
+            else:
+                entroval += (i * (math.log(i , 2)))
+        entroval = -1 * entroval
+        entro.append(entroval)
+        
+    if(flag == False):
+        yx = zip(entro, predY)
+        yx = sorted(yx, key = lambda t: t[0])
+        newPredY = [x for y, x in yx]
+        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predY = np.mean(predYEntroList, axis=0)
+    else:
+        predY = np.mean(predYList, axis=0)
+    
+    return (predY)

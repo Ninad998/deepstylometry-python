@@ -9,10 +9,7 @@ def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000,
         return None
 
     else:
-        if level == 'char':
-            import CNNModelCreatorChar as md
-        else:
-            import CNNModelCreatorWordEdit as md
+        import CNNModelCreatorWordEdit as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 
@@ -27,26 +24,28 @@ def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000,
         if level == 'word':
             embedding_matrix = md.prepareEmbeddingMatrix(embeddings_index, EMBEDDING_DIM = dimensions)
 
-        model = md.compileModel(len(labels_index), embedding_matrix, chunk_size = chunk_size,
-                                DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
+        #model = md.compileModel(len(labels_index), embedding_matrix, chunk_size = chunk_size,
+        #                        DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
 
         #(model, history, train_acc, val_acc) = md.fitModelCNN(model, trainX, trainY, valX, valY,
         #                                                      nb_epoch = nb_epoch, batch_size = batch_size)
-
+        
+        #del model
+        
         model = md.recompileModelCNN(len(labels_index), embedding_matrix, chunk_size = chunk_size,
                                      DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
-
+        
         (feature_model, mlmodel) = md.recompileModelML(model, embedding_matrix, algo, new = True,
                                                        chunk_size = chunk_size, EMBEDDING_DIM = dimensions)
 
         del model
-
+        
         (trainX, trainY, valX, valY) = md.preProcessTrainVal(texts, labels, ml = True, chunk_size = chunk_size)
 
         del texts, labels
 
         (train_acc, val_acc) = md.fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY)
-
+        
         return (labels_index, train_acc, val_acc, samples)
 
 

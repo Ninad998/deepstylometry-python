@@ -222,7 +222,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
-        activation='relu'))                                    # Activation function to use
+        activation='sigmoid'))                                    # Activation function to use
 
     model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
@@ -279,7 +279,7 @@ def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size
 
     model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
-        activation='relu'))                                    # Activation function to use
+        activation='sigmoid'))                                    # Activation function to use
 
     model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
@@ -360,7 +360,7 @@ def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 
 
     feature_model.add(Dense(                                   # Layer 3,  Output Size: 256
                       output_dim=DENSE_FEATURE,                # Output dimension
-                      activation='relu'))                      # Activation function to use
+                      activation='sigmoid'))                      # Activation function to use
 
     feature_model.layers[1].set_weights(model.layers[1].get_weights())
     feature_model.layers[2].set_weights(model.layers[2].get_weights())

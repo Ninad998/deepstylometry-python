@@ -163,7 +163,9 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
 
 def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
     global nb_words, embedding_matrix
-    nb_words = len(word_index)
+    
+    nb_words = MAX_NB_WORDS
+    
     embedding_matrix = np.zeros((nb_words + 1, EMBEDDING_DIM))
     for word, i in word_index.items():
         if i > MAX_NB_WORDS:
@@ -175,7 +177,7 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 512, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -232,7 +234,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     return model
 
 def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                   BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+                   BORDER_MODE = 'valid', DENSE_FEATURE = 512, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram

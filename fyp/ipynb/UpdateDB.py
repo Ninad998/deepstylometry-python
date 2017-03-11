@@ -239,7 +239,7 @@ def updateresultOldCNNDiffBoth(doc_id = 0, candidate = 4, dimensions = 200,
         if (len(rows) > 0):
             return False
         else:
-            cursor.execute("""INSERT INTO readingsOldCNNDiff
+            cursor.execute("""INSERT INTO readingsOldCNNDiffBoth
             (doc_id, candidates, dimensions, samples, iterations, dropout,
              train_acc_cnn, val_acc_cnn, test_acc_cnn, test_bin_cnn,
              train_acc_ml, val_acc_ml, test_acc_ml, test_bin_ml,

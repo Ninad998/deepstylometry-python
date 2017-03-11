@@ -186,7 +186,7 @@ def checkOldCNNDiffBoth(doc_id = 0, candidate = 4, dimensions = 200,
 
         cursor = conn.cursor()
 
-        query = "SELECT * FROM readingsOldCNNDiff WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query = "SELECT * FROM readingsOldCNNDiffBoth WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
         query += " AND dimensions = " + str(dimensions) + " AND samples = " + str(samples)
         query += " AND iterations = " + str(iterations) + " AND dropout = " + str(dropout)
         query += " AND test LIKE '%" + str(test) + "%' ;"
@@ -226,7 +226,7 @@ def updateresultOldCNNDiffBoth(doc_id = 0, candidate = 4, dimensions = 200,
 
         cursor = conn.cursor()
 
-        query = "SELECT * FROM readingsOldCNNDiff WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query = "SELECT * FROM readingsOldCNNDiffBoth WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
         query += " AND dimensions = " + str(dimensions) + " AND samples = " + str(samples)
         query += " AND iterations = " + str(iterations) + " AND dropout = " + str(dropout)
         query += " AND test LIKE '%" + str(test) + "%' ;"

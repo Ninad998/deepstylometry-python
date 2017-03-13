@@ -23,22 +23,11 @@ def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000,
 
         if level == 'word':
             embedding_matrix = md.prepareEmbeddingMatrix(embeddings_index, EMBEDDING_DIM = dimensions)
-
-        #model = md.compileModel(len(labels_index), embedding_matrix, chunk_size = chunk_size,
-        #                        DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
-
-        #(model, history, train_acc, val_acc) = md.fitModelCNN(model, trainX, trainY, valX, valY,
-        #                                                      nb_epoch = nb_epoch, batch_size = batch_size)
+            
+        feature_model = md.recompileModelCNN(len(labels_index), embedding_matrix, chunk_size = chunk_size,
+                                             DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
         
-        #del model
-        
-        model = md.recompileModelCNN(len(labels_index), embedding_matrix, chunk_size = chunk_size,
-                                     DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
-        
-        (feature_model, mlmodel) = md.recompileModelML(model, embedding_matrix, algo, new = True,
-                                                       chunk_size = chunk_size, EMBEDDING_DIM = dimensions)
-
-        del model
+        mlmodel = md.recompileModelML(algo, new = True)
         
         (trainX, trainY, valX, valY) = md.preProcessTrainVal(texts, labels, ml = True, chunk_size = chunk_size)
 

@@ -293,6 +293,8 @@ def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size
     filepath="author-cnn-ngrams-word.hdf5"
 
     model.load_weights(filepath)
+    
+    model.pop()
 
     model.compile(loss='categorical_crossentropy', optimizer=sgd,
                   metrics=['accuracy'])
@@ -322,63 +324,8 @@ def getMLModel(algo):
         return None
 
 
-def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 100, chunk_size = 1000,
-                     CONVOLUTION_FEATURE = 256, BORDER_MODE = 'valid', DENSE_FEATURE = 512, DROP_OUT = 0.5,
-                     LEARNING_RATE=0.01, MOMENTUM=0.9):
-    global sgd
-
-    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
-    convs = []
-
-    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
-
-    for n_gram in ngram_filters:
-        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
-            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
-            filter_length=n_gram,                              # Size of kernels, ngram
-            activation='relu',                                 # Activation function to use
-            trainable=False)(graph_in)                         # Disable weight changes during training
-
-        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
-            pool_length=3,                                     # Size of kernels
-            trainable=False)(conv)                             # Disable weight changes during training
-
-        flat = Flatten()(pool)
-
-        convs.append(flat)
-
-    feature_model = Sequential()
-
-    feature_model.add(Embedding(                               # Layer 0, Start
-        input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
-        output_dim=EMBEDDING_DIM,                              # Dimensions to generate
-        weights=[embedding_matrix],                            # Initialize word weights
-        input_length=chunk_size,                               # Define length to input sequences in the first layer
-        trainable=False))                                      # Disable weight changes during training
-
-    feature_model.add(Dropout(0.25))                           # Dropout 25%
-
-    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
-
-    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
-
-    feature_model.add(graph)                                   # Concat the ngram convolutions
-
-    feature_model.add(Dropout(DROP_OUT))                       # Dropout 50%
-
-    feature_model.add(Dense(                                   # Layer 3,  Output Size: 256
-                      output_dim=DENSE_FEATURE,                # Output dimension
-                      activation='sigmoid'))                      # Activation function to use
-
-    feature_model.layers[1].set_weights(model.layers[1].get_weights())
-    feature_model.layers[2].set_weights(model.layers[2].get_weights())
-    feature_model.layers[3].set_weights(model.layers[3].get_weights())
-
-    sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
-
-    feature_model.compile(loss='categorical_crossentropy', optimizer=sgd,
-                          metrics=['accuracy'])
-
+def compileModelML(algo, new = True):
+    
     mlmodel = getMLModel(algo)
 
     if not new:
@@ -391,7 +338,7 @@ def recompileModelML(model, embedding_matrix, algo, new = True, EMBEDDING_DIM = 
 
     print("Done compiling.")
 
-    return (feature_model, mlmodel)
+    return mlmodel
 
 def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     filepath="author-cnn-ngrams-word.hdf5"
@@ -477,7 +424,7 @@ def predictModel(feature_model, mlmodel, testX, authorList):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)

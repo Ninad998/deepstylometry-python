@@ -347,7 +347,7 @@ def predictModel(model, testX, batch_size=128):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)

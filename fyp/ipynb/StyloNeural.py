@@ -32,7 +32,9 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
         
         (model, history, train_acc, val_acc) = md.fitModel(model, trainX, trainY, valX, valY,
                                                            nb_epoch = nb_epoch, batch_size = batch_size)
-
+        
+        del model
+        
         return (labels_index, history, train_acc, val_acc, samples)
 
 
@@ -72,4 +74,4 @@ def getTestResults(authorList = None, doc_id = None, labels_index = None,chunk_s
 
         del model
 
-        return (predY, testY)
+        return (predYList, predY, testY)

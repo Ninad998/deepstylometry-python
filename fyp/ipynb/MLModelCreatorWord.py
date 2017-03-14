@@ -120,14 +120,14 @@ def compileModel(algo):
     ct_svc = Pipeline([
         ("tfidf_vectorizer", CountVectorizer(ngram_range = (1, 4), stop_words = None, lowercase = False,
                                              max_features = 40000)), 
-        ("linear svc", SVC(kernel="linear"))
+        ("linear svc", SVC(kernel="linear", probability=True))
     ])
 
     tfidf_svc = Pipeline([
         ("tfidf_vectorizer", TfidfVectorizer(ngram_range = (1, 4), stop_words = None, lowercase = False,
                                              max_features = 40000, use_idf = True, smooth_idf = True,
                                              sublinear_tf = True)), 
-        ("linear svc", SVC(kernel="linear"))
+        ("linear svc", SVC(kernel="linear", probability=True))
     ])
     
     if algo == 'ct_multi_nb':
@@ -180,19 +180,31 @@ def fitModel(model, algo, trainX, trainY, valX, valY):
 
 def predictModel(model, testX, authorList):
     # Function to take input of data and return prediction model
-    predY = np.array(model.predict(testX))
+    predY = np.array(model.predict_proba(testX))
 
-    unique, counts = np.unique(predY, return_counts=True)
-
-    tot = len(predY)
-
-    predYprob = [0.0] * len(authorList)
-
-    for pred, predcount in zip(unique, counts):
-        predval = 0.0
-        predval = predcount/tot
-        predYprob.insert(pred, predval)
+    predYList = predY[:]
+    entro = []
     
-    predYprob = np.array(predYprob)
+    flag = False
+    import math
+    for row in predY:
+        entroval = 0
+        for i in row:
+            if(i <= 0):
+                flag = True
+                pass
+            else:
+                entroval += (i * (math.log(i , 2)))
+        entroval = -1 * entroval
+        entro.append(entroval)
+        
+    if(flag == False):
+        yx = zip(entro, predY)
+        yx = sorted(yx, key = lambda t: t[0])
+        newPredY = [x for y, x in yx]
+        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
+        predY = np.mean(predYEntroList, axis=0)
+    else:
+        predY = np.mean(predYList, axis=0)
     
-    return (predYprob)
+    return (predYList, predY)

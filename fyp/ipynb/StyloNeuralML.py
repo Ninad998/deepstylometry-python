@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000, nb_epoch = 180, level = 'word',
-               glove = '../glove/', samples = 300, dimensions = 200, dropout = 0.5, batch_size = 100):
-    global model
-
+def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000, level = 'word',
+               glove = '../glove/', samples = 300, dimensions = 200, dropout = 0.5):
+    
     if (authorList is None) or (doc_id is None) or (algo is None) or (doc_id == 0):
         return None
 
@@ -27,7 +26,7 @@ def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000,
         feature_model = md.recompileModelCNN(len(labels_index), embedding_matrix, chunk_size = chunk_size,
                                              DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
         
-        mlmodel = md.recompileModelML(algo, new = True)
+        mlmodel = md.compileModelML(algo, new = True)
         
         (trainX, trainY, valX, valY) = md.preProcessTrainVal(texts, labels, ml = True, chunk_size = chunk_size)
 
@@ -35,12 +34,13 @@ def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000,
 
         (train_acc, val_acc) = md.fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY)
         
+        del feature_model
+        
         return (labels_index, train_acc, val_acc, samples)
 
 
-def getTestResults(authorList = None, doc_id = None, labels_index = None, algo = None, chunk_size = 1000,
-                   nb_epoch = 180, level = 'word', glove = '../glove/', samples = 300, dimensions = 200,
-                   dropout = 0.5, batch_size = 100):
+def getTestResults(authorList = None, doc_id = None, labels_index = None, algo = None, chunk_size = 1000, level = 'word',
+               glove = '../glove/', dimensions = 200, dropout = 0.5, predYList_cnn = None):
 
     if (authorList is None) or (labels_index is None) or (doc_id is None) or (doc_id == 0):
         return None
@@ -65,17 +65,53 @@ def getTestResults(authorList = None, doc_id = None, labels_index = None, algo =
 
         embedding_matrix = md.prepareEmbeddingMatrix(embeddings_index, EMBEDDING_DIM = dimensions)
 
-        model = md.recompileModelCNN(len(labels_index), embedding_matrix, chunk_size = chunk_size,
-                                     DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
+        feature_model = md.recompileModelCNN(len(labels_index), embedding_matrix, chunk_size = chunk_size,
+                                             DROP_OUT = dropout, EMBEDDING_DIM = dimensions)
 
-        (feature_model, mlmodel) = md.recompileModelML(model, embedding_matrix, algo, new = False,
-                                                       chunk_size = chunk_size, EMBEDDING_DIM = dimensions)
+        mlmodel = md.compileModelML(algo, new = False)
 
         import numpy as np
         testY = np.mean(testY, axis=0, dtype=int)
 
-        (predY) = md.predictModel(feature_model, mlmodel, testX, authorList)
+        (predYList, predY) = md.predictModel(feature_model, mlmodel, testX, authorList)
 
-        del model
+        del feature_model
+        
+        newPredList = []
+        
+        newPredList = np.concatenate((predYList_cnn, predYList))
+        
+        (predList, predEntro) = entropy(newPredList, cutoff = 0.5)
 
-        return (predY, testY)
+        return (predYList, predY, testY, predEntro)
+    
+def entropy(predList, cutoff = 0.5):
+    
+    import numpy as np
+    
+    predYList = predList[:]
+    entro = []
+    
+    flag = False
+    import math
+    for row in predList:
+        entroval = 0
+        for i in row:
+            if(i <= 0):
+                flag = True
+                pass
+            else:
+                entroval += (i * (math.log(i , 2)))
+        entroval = -1 * entroval
+        entro.append(entroval)
+        
+    if(flag == False):
+        yx = zip(entro, predList)
+        yx = sorted(yx, key = lambda t: t[0])
+        newPredY = [x for y, x in yx]
+        predYEntroList = newPredY[:int(len(newPredY)*cutoff)]
+        predY = np.mean(predYEntroList, axis=0)
+    else:
+        predY = np.mean(predYList, axis=0)
+        
+    return (predYList, predY)

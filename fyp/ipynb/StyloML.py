@@ -30,12 +30,15 @@ def getTestResults(algo, authorList = None, doc_id = None, labels_index = None, 
         
         print("Algo: %s" % (str(algo)))
     
-        (testX, testY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)\
+        (testX, testY) = md.loadDocData(authorList, doc_id, chunk_size = chunk_size)
+        
+        import numpy as np
+        testY = np.mean(testY, axis=0, dtype=int)
             
         model = md.recompileModel(algo)
         
-        (predY) = md.predictModel(model, testX, authorList)
+        (predYList, predY) = md.predictModel(model, testX, authorList)
         
         del model
 
-        return (labels_index, testY, predY, samples)
+        return (predYList, predY, testY)

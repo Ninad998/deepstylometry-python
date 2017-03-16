@@ -12,7 +12,7 @@ def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 1
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNLSTMModelCreatorWord as md
+            import CNNModelCreatorWordLSTM as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 
@@ -48,7 +48,7 @@ def getTestResults(authorList = None, doc_id = None, labels_index = None,chunk_s
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNLSTMModelCreatorWord as md
+            import CNNModelCreatorWordLSTM as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 

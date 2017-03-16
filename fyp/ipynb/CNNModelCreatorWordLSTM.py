@@ -194,11 +194,9 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
         pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
             pool_length=3)(conv)                               # Size of kernels
-
-        flat = Flatten()(pool)
         
         lstm = LSTM(                                           # Layer X b,  Output Size: 256
-            output_dim=LSTM_FEATURE)(flat)                     # Features: 256
+            output_dim=LSTM_FEATURE)(pool)                     # Features: 256
 
         convs.append(lstm)
 
@@ -255,11 +253,9 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
 
         pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
             pool_length=3)(conv)                               # Size of kernels
-
-        flat = Flatten()(pool)
         
         lstm = LSTM(                                           # Layer X b,  Output Size: 256
-            output_dim=LSTM_FEATURE)(flat)                     # Features: 256
+            output_dim=LSTM_FEATURE)(pool)                     # Features: 256
 
         convs.append(lstm)
 

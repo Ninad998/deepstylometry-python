@@ -5,7 +5,6 @@ import nltk.tokenize
 import psycopg2
 import pandas as pd
 import sys, re
-import sys
 
 def clean_str(string):
     """

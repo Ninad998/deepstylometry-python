@@ -4,7 +4,29 @@ from __future__ import print_function
 import nltk.tokenize
 import psycopg2
 import pandas as pd
+import sys, re
 import sys
+
+def clean_str(string):
+    """
+    Tokenization/string cleaning for all datasets
+    Every dataset is lower cased
+    Original taken from https://github.com/yoonkim/CNN_sentence/blob/master/process_data.py
+    """
+    string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)     
+    string = re.sub(r"\'s", " \'s", string) 
+    string = re.sub(r"\'ve", " \'ve", string) 
+    string = re.sub(r"n\'t", " n\'t", string) 
+    string = re.sub(r"\'re", " \'re", string) 
+    string = re.sub(r"\'d", " \'d", string) 
+    string = re.sub(r"\'ll", " \'ll", string) 
+    string = re.sub(r",", " , ", string) 
+    string = re.sub(r"!", " ! ", string) 
+    string = re.sub(r"\(", " \( ", string) 
+    string = re.sub(r"\)", " \) ", string) 
+    string = re.sub(r"\?", " \? ", string) 
+    string = re.sub(r"\s{2,}", " ", string)    
+    return string.strip().lower()
 
 def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size = 1000):
     df = pd.DataFrame()
@@ -31,7 +53,8 @@ def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size =
         print("Read completed")
         print("Number of rows: %s" % (len(rows)))
         for row in rows:
-            tokens = nltk.word_tokenize(row[1].lower().decode("utf8"))
+            clean_row = clean_str(row[1].decode("utf8"))
+            tokens = nltk.word_tokenize(clean_row)
             chunk1 = []
             for x in tokens:
                 if (i < chunk_size):
@@ -83,7 +106,8 @@ def getWordDocData(PORT, doc, documentTable = 'document', chunk_size = 1000):
         print("Read completed")
         print("Number of rows: %s" % (len(rows)))
         for row in rows:
-            tokens = nltk.word_tokenize(row[1].lower().decode("utf8"))
+            clean_row = clean_str(row[1].decode("utf8"))
+            tokens = nltk.word_tokenize(clean_row)
             chunk1 = []
             for x in tokens:
                 if (i < chunk_size):
@@ -118,3 +142,4 @@ def getWordDocData(PORT, doc, documentTable = 'document', chunk_size = 1000):
             conn.close()
 
     return df
+

@@ -156,11 +156,11 @@ def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200,
             return False
         else:
             cursor.execute("""INSERT INTO readingsOldCNN
-            (doc_id, candidates, dimensions, samples, iterations, dropout, test_acc, test_bin, test)
+            (doc_id, candidates, dimensions, samples, iterations, dropout, train_acc, test_bin, test)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), str(dimensions),
                             str(samples), str(iterations), str(dropout),
-                            str(test_acc), str(test_bin),
+                            str(train_acc), str(val_acc),
                             str(test)))
             conn.commit()
 

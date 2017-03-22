@@ -42,7 +42,6 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
-    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -89,7 +88,6 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
-    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',

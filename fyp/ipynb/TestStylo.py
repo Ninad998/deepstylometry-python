@@ -14,7 +14,7 @@ for index, row in df.iterrows():
     
     candidate = len(authorList)
 
-    test = "batch10" # change before run
+    test = "dense_256" # change before run
 
     level = "word"
 
@@ -33,12 +33,17 @@ for index, row in df.iterrows():
     printstate += (("\niterations = %s, dropout = %s, test = %s") % (str(iterations), str(dropout), str(test)))
 
     print("Current test: %s" % (str(printstate)))
-
     
-    import UpdateDB as db
-
-    case = db.checkOldCNN(doc_id = doc_id, candidate = candidate, dimensions = dimensions, samples = samples,
-                          iterations = iterations, dropout = dropout, test = test)
+    from sshtunnel import SSHTunnelForwarder
+    with SSHTunnelForwarder(('144.214.121.15', 22),
+                            ssh_username='ninadt',
+                            ssh_password='Ninad123',
+                            remote_bind_address=('localhost', 3306),
+                            local_bind_address=('localhost', 3300)):
+        import UpdateDB as db
+        case = db.checkCNN(doc_id = doc_id, candidate = candidate, dimensions = dimensions,
+                           samples = samples, iterations = iterations, dropout = dropout,
+                           test = test, port = 3300)
 
     if case == False:
 
@@ -50,13 +55,13 @@ for index, row in df.iterrows():
             level = level, glove = '../../glove/', dimensions = dimensions, 
             samples = samples, nb_epoch = iterations, dropout = dropout, batch_size = 10 )
 
-        (predY, testY) = Stylo.getTestResults(
+        (predYList, predY, testY) = Stylo.getTestResults(
             doc_id = doc_id, authorList = authorList[:], labels_index = labels_index,
             level = level, glove = '../../glove/', dimensions = dimensions, 
             samples = samples, nb_epoch = iterations, dropout = dropout, batch_size = 10 )
 
         loc = testY
-
+        
         test_acc = predY[loc]
 
         test_bin = 0
@@ -64,12 +69,18 @@ for index, row in df.iterrows():
         if(predY.tolist().index(max(predY)) == testY):
             test_bin = 1
         
-        import UpdateDB as db
-        case = db.updateresultOldCNN(doc_id = doc_id, candidate = candidate, dimensions = dimensions,
-                                     samples = samples, iterations = iterations, dropout = dropout, 
-                                     train_acc = train_acc, val_acc = val_acc,
-                                     test_acc = test_acc, test_bin = test_bin,
-                                     test = test)
+        from sshtunnel import SSHTunnelForwarder
+        with SSHTunnelForwarder(('144.214.121.15', 22),
+                                ssh_username='ninadt',
+                                ssh_password='Ninad123',
+                                remote_bind_address=('localhost', 3306),
+                                local_bind_address=('localhost', 3300)):
+            import UpdateDB as db
+            case = db.updateresultCNN(doc_id = doc_id, candidate = candidate, dimensions = dimensions,
+                                      samples = samples, iterations = iterations, dropout = dropout,
+                                      train_acc = train_acc, val_acc = val_acc,
+                                      test_acc = test_acc, test_bin = test_bin,
+                                      test = test, port = 3300)
                                      
         del Stylo
 
@@ -78,6 +89,10 @@ for index, row in df.iterrows():
 
         import time
         time.sleep(10)
+        
+        from IPython.display import clear_output
+
+        clear_output()
 
     else:
         print("Skipped: %12s" % (str(printstate)))

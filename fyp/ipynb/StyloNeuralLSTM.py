@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 180, level = 'word',
-               glove = '../glove/', samples = 300, dimensions = 200, dropout = 0.5, batch_size = 100):
+def getResults(authorList = None, doc_id = None, chunk_size = 1000, nb_epoch = 30, level = 'word',
+               glove = '../glove/', samples = 3200, dimensions = 200, dropout = 0.5, batch_size = 10):
     global model
 
     if (authorList is None) or (doc_id is None) or (doc_id == 0):

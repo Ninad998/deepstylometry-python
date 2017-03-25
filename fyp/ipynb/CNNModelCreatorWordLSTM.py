@@ -36,7 +36,7 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
 
-def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
+def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 3200):
     texts = []  # list of text samples
     labels_index = {}  # dictionary mapping label name to numeric id
     labels = []  # list of label ids
@@ -161,7 +161,7 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
 
     return (testX)
 
-def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
+def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 200):
     global nb_words, embedding_matrix
     
     nb_words = MAX_NB_WORDS
@@ -170,15 +170,18 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
     for word, i in word_index.items():
         if i > MAX_NB_WORDS:
             continue
+        
         embedding_vector = embeddings_index.get(word)
+        
         if embedding_vector is not None:
             # words not found in embedding index will be all-zeros.
             embedding_matrix[i] = embedding_vector
+    
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
                  BORDER_MODE = 'valid', LSTM_FEATURE = 256, DENSE_FEATURE = 256,
-                 DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+                 DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -235,9 +238,9 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     print("Done compiling.")
     return model
 
-def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', LSTM_FEATURE = 256, DENSE_FEATURE = 256,
-                 DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                   BORDER_MODE = 'valid', LSTM_FEATURE = 256, DENSE_FEATURE = 256,
+                   DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -298,7 +301,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
     print("Done compiling.")
     return model
 
-def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=10):
     filepath="author-cnn-ngrams-lstm-word.hdf5"
     
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
@@ -307,8 +310,8 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
 
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
-                        nb_epoch=nb_epoch, batch_size=batch_size,
-                        callbacks=callbacks_list)
+                        nb_epoch=nb_epoch, batch_size=batch_size)#,
+                        #callbacks=callbacks_list)
 
     # load weights from the best checkpoint
     model.load_weights(filepath)
@@ -330,12 +333,15 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
 
     return (model, history, train_acc, val_acc)
 
-def predictModel(model, testX, batch_size=100):
+def predictModel(model, testX, batch_size=10):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
+    
     predYList = predY[:]
+    
     entro = []
     flag = False
+    
     import math
     for row in predY:
         entroval = 0
@@ -347,6 +353,7 @@ def predictModel(model, testX, batch_size=100):
                 entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
+    
     if(flag == False):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])

@@ -39,12 +39,13 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
 
-def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
+def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 3200):
     texts = []  # list of text samples
     labels_index = {}  # dictionary mapping label name to numeric id
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
+    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -91,6 +92,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
+    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
@@ -109,9 +111,8 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
-def preProcessTrainVal(texts, labels, ml = False, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
+def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
     global tokenizer, word_index
-
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
     tokenizer.fit_on_texts(texts)
@@ -122,17 +123,13 @@ def preProcessTrainVal(texts, labels, ml = False, chunk_size = 1000, MAX_NB_WORD
 
     data = pad_sequences(sequences, maxlen=chunk_size)
 
-    if not ml:
-        labels = to_categorical(np.asarray(labels))
-
-    labels = np.asarray(labels)
-
+    labels = to_categorical(np.asarray(labels))
     print('Shape of data tensor:', data.shape)
     print('Shape of label tensor:', labels.shape)
 
     # split the data into a training set and a validation set
     from sklearn.model_selection import train_test_split
-    trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT, random_state = 123)
+    trainX, valX, trainY, valY = train_test_split(data, labels, test_size=VALIDATION_SPLIT)
 
     del data, labels
 
@@ -167,7 +164,7 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
 
     return (testX)
 
-def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
+def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 200):
     global nb_words, embedding_matrix
     
     nb_words = MAX_NB_WORDS
@@ -176,14 +173,17 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
     for word, i in word_index.items():
         if i > MAX_NB_WORDS:
             continue
+        
         embedding_vector = embeddings_index.get(word)
+        
         if embedding_vector is not None:
             # words not found in embedding index will be all-zeros.
             embedding_matrix[i] = embedding_vector
+    
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -239,8 +239,8 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     print("Done compiling.")
     return model
 
-def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                      BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                      BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -340,7 +340,7 @@ def compileModelML(algo, new = True):
 
     return mlmodel
 
-def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch = 30, batch_size = 10):
     filepath="author-cnn-ngrams-word.hdf5"
 
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
@@ -405,9 +405,10 @@ def predictModel(feature_model, mlmodel, testX, authorList):
     predY = np.array(mlmodel.predict_proba(testX))
 
     predYList = predY[:]
-    entro = []
     
+    entro = []
     flag = False
+    
     import math
     for row in predY:
         entroval = 0
@@ -419,7 +420,7 @@ def predictModel(feature_model, mlmodel, testX, authorList):
                 entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
-        
+    
     if(flag == False):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
@@ -428,5 +429,6 @@ def predictModel(feature_model, mlmodel, testX, authorList):
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)
-    
+        
     return (predYList, predY)
+

@@ -1,3 +1,3 @@
 #!/bin/bash
-	
-python TestStylo.py
+
+CUDA_VISIBLE_DEVICES=1 python TestStylo.py

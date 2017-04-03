@@ -5,7 +5,6 @@ from __future__ import print_function
 import os
 
 import numpy as np
-import pandas as pd
 
 np.random.seed(123)
 
@@ -39,49 +38,55 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
 
-def loadGenderData(chunk_size = 1000, filename = 'data.csv', samples = 3200):
+def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
     texts = []  # list of text samples
     labels_index = {}  # dictionary mapping label name to numeric id
     labels = []  # list of label ids
     import DatabaseQuery
     from sshtunnel import SSHTunnelForwarder
+    PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
                             ssh_username='stylometry',
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
-                            local_bind_address=('localhost', 5430)):
-        textToUse = DatabaseQuery.getWordGenderData(5430, chunk_size = chunk_size)
+                            local_bind_address=('localhost', 5400)):
+        textToUse = DatabaseQuery.getWordAuthData(5400, authorList, doc_id,
+                                                  documentTable = documentTable, chunk_size = chunk_size)
     labels = []
     texts = []
     size = []
-    genderList = textToUse.gender.unique()
-    print('Gender %s.' % (str(genderList)))
-    for gender in genderList:
-        current = textToUse.loc[textToUse['gender'] == gender]
+    authorList = textToUse.author_id.unique()
+    for auth in authorList:
+        current = textToUse.loc[textToUse['author_id'] == auth]
         size.append(current.shape[0])
-        print("Gender: %5s  Size: %5s" % (gender, current.shape[0]))
+        print("Author: %5s  Size: %5s" % (auth, current.shape[0]))
     print("Min: %s" % (min(size)))
     print("Max: %s" % (max(size)))
 
-    for gender in genderList:
-        current = textToUse.loc[textToUse['gender'] == gender]
-        current = current.sample(n = min(size))
+    authorList = authorList.tolist()
+
+    for auth in authorList:
+        current = textToUse.loc[textToUse['author_id'] == auth]
+        if (samples > min(size)):
+            samples = min(size)
+        current = current.sample(n = samples)
         textlist = current.doc_content.tolist()
         texts = texts + textlist
-        labels = labels + [genderList.tolist().index(gender) for gender in current.gender.tolist()]
+        labels = labels + [authorList.index(author_id) for author_id in current.author_id.tolist()]
     labels_index = {}
-    labels_index[0] = '0'
-    for i, gender in enumerate(genderList):
-        labels_index[i] = gender
+    labels_index[0] = 0
+    for i, auth in enumerate(authorList):
+        labels_index[i] = auth
 
     del textToUse
 
+    print('Authors %s.' % (str(authorList)))
     print('Found %s texts.' % len(texts))
     print('Found %s labels.' % len(labels))
 
     return (texts, labels, labels_index, samples)
 
-def loadDocData(doc_id, genderList, chunk_size = 1000):
+def loadDocData(authorList, doc_id, chunk_size = 1000):
     texts = []  # list of text samples
     labels = []  # list of label ids
     import DatabaseQuery
@@ -92,11 +97,12 @@ def loadDocData(doc_id, genderList, chunk_size = 1000):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordGenderDocData(5400, doc_id, chunk_size = chunk_size)
+        textToUse = DatabaseQuery.getWordDocData(5400, doc_id, documentTable = documentTable,
+                                                 chunk_size = chunk_size)
     labels = []
     texts = []
     for index, row in textToUse.iterrows():
-        labels.append(genderList.index(row.gender))
+        labels.append(authorList.index(row.author_id))
         texts.append(row.doc_content)
 
     del textToUse
@@ -108,9 +114,7 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
     global tokenizer, word_index
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
-    
     tokenizer.fit_on_texts(texts)
-    
     sequences = tokenizer.texts_to_sequences(texts)
 
     word_index = tokenizer.word_index
@@ -132,9 +136,9 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
 
 def makeTokenizer():
     global tokenizer, word_index
-    
+
     import cPickle as pickle
-    
+
     with open('tokenizer.pickle', 'rb') as handle:
         tokenizer = pickle.load(handle)
 
@@ -159,23 +163,19 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
 
     return (testX)
 
-def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 20000, EMBEDDING_DIM = 100):
+def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
     global nb_words, embedding_matrix
     
-    nb_words = min(MAX_NB_WORDS, len(word_index))
+    nb_words = MAX_NB_WORDS
     
     embedding_matrix = np.zeros((nb_words + 1, EMBEDDING_DIM))
-    
     for word, i in word_index.items():
         if i > MAX_NB_WORDS:
             continue
-            
         embedding_vector = embeddings_index.get(word)
-        
         if embedding_vector is not None:
             # words not found in embedding index will be all-zeros.
             embedding_matrix[i] = embedding_vector
-            
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 30,
@@ -302,7 +302,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
     
     rms = RMSprop(lr=LEARNING_RATE)
         
-    filepath="gender-cnn-lstm-word.hdf5"
+    filepath="author-cnn-lstm-word.hdf5"
     
     model.load_weights(filepath)
     
@@ -312,10 +312,9 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
     print("Done compiling.")
     return model
 
-def fitModel(model, trainX, trainY, valX, valY, nb_epoch=120, batch_size=100):
+def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+    filepath="author-cnn-lstm-word.hdf5"
     
-    filepath="gender-cnn-lstm-word.hdf5"
-
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
     callbacks_list = [checkpoint]
@@ -327,32 +326,27 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=120, batch_size=100):
 
     # load weights from the best checkpoint
     model.load_weights(filepath)
-    
+
     # Compile model again (required to make predictions)
     model.compile(loss='categorical_crossentropy', optimizer=rms,
                   metrics=['accuracy'])
 
     train_acc = (model.evaluate(trainX, trainY))[1]
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
-    
+
     val_acc = (model.evaluate(valX, valY))[1]
     print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
-    
+
     import cPickle as pickle
-    
+
     with open('tokenizer.pickle', 'wb') as handle:
         pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    with open('rms.pickle', 'wb') as handle:
-        pickle.dump(rms, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return (model, history, train_acc, val_acc)
 
-def predictModel(model, testX, batch_size=100):
-    
+def predictModel(model, testX, batch_size=128):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
-    
     predYList = predY[:]
     entro = []
     flag = False
@@ -375,5 +369,5 @@ def predictModel(model, testX, batch_size=100):
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)
-    
+        
     return (predYList, predY)

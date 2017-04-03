@@ -20,7 +20,7 @@ from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
 
 databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
-documentTable = 'document_english_corpus_full'
+documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Level = Word')

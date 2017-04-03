@@ -12,7 +12,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential, Model
-from keras.layers import Embedding, Convolution1D, MaxPooling1D, Flatten
+from keras.layers import Embedding, Convolution1D, MaxPooling1D, LSTM, Flatten
 from keras.layers import Input, Merge, Dense
 from keras.layers import Dropout
 from keras.optimizers import SGD
@@ -180,7 +180,8 @@ def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM
     return embedding_matrix
 
 def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
+                 BORDER_MODE = 'valid', LSTM_FEATURE = 256, DENSE_FEATURE = 256,
+                 DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -196,10 +197,11 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 10
 
         pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
             pool_length=3)(conv)                               # Size of kernels
+        
+        lstm = LSTM(                                           # Layer X b,  Output Size: 256
+            output_dim=LSTM_FEATURE)(pool)                     # Features: 256
 
-        flat = Flatten()(pool)
-
-        convs.append(flat)
+        convs.append(lstm)
 
     model = Sequential()
 
@@ -237,7 +239,8 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 10
     return model
 
 def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                   BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
+                   BORDER_MODE = 'valid', LSTM_FEATURE = 256, DENSE_FEATURE = 256,
+                   DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
     ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
@@ -253,10 +256,11 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 
 
         pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
             pool_length=3)(conv)                               # Size of kernels
+        
+        lstm = LSTM(                                           # Layer X b,  Output Size: 256
+            output_dim=LSTM_FEATURE)(pool)                     # Features: 256
 
-        flat = Flatten()(pool)
-
-        convs.append(flat)
+        convs.append(lstm)
 
     model = Sequential()
 
@@ -287,7 +291,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 
 
     sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
     
-    filepath="author-cnn-ngrams-word.hdf5"
+    filepath="author-cnn-ngrams-lstm-word.hdf5"
 
     model.load_weights(filepath)
 
@@ -297,8 +301,8 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 
     print("Done compiling.")
     return model
 
-def fitModel(model, trainX, trainY, valX, valY, nb_epoch = 30, batch_size=10):
-    filepath="author-cnn-ngrams-word.hdf5"
+def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=10):
+    filepath="author-cnn-ngrams-lstm-word.hdf5"
     
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 
@@ -306,8 +310,8 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch = 30, batch_size=10):
 
     # Function to take input of data and return fitted model
     history = model.fit(trainX, trainY, validation_data=(valX, valY),
-                        nb_epoch=nb_epoch, batch_size=batch_size,
-                        callbacks=callbacks_list)
+                        nb_epoch=nb_epoch, batch_size=batch_size)#,
+                        #callbacks=callbacks_list)
 
     # load weights from the best checkpoint
     model.load_weights(filepath)
@@ -329,7 +333,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch = 30, batch_size=10):
 
     return (model, history, train_acc, val_acc)
 
-def predictModel(model, testX, batch_size = 10):
+def predictModel(model, testX, batch_size=10):
     # Function to take input of data and return prediction model
     predY = np.array(model.predict(testX, batch_size=batch_size))
     
@@ -360,4 +364,3 @@ def predictModel(model, testX, batch_size = 10):
         predY = np.mean(predYList, axis=0)
         
     return (predYList, predY)
-

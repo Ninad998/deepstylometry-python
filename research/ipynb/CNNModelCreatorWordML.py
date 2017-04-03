@@ -12,14 +12,17 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential, Model
-from keras.layers import Embedding, Convolution1D, MaxPooling1D
-from keras.layers import Input, Merge, Dense, Flatten
+from keras.layers import Embedding, Convolution1D, MaxPooling1D, Flatten
+from keras.layers import Input, Merge, Dense
 from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsRestClassifier
 
-databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
-documentTable = 'document_english_corpus_full'
+databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Level = Word')
@@ -36,7 +39,7 @@ def readVectorData(fileName, GLOVE_DIR = 'glove/'):
     print('Found %s word vectors.' % (len(embeddings_index)))
     return embeddings_index
 
-def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):
+def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 3200):
     texts = []  # list of text samples
     labels_index = {}  # dictionary mapping label name to numeric id
     labels = []  # list of label ids
@@ -108,7 +111,7 @@ def loadDocData(authorList, doc_id, chunk_size = 1000):
     print('Found %s texts.' % len(texts))
     return (texts, labels)
 
-def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.1):
+def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, VALIDATION_SPLIT = 0.2):
     global tokenizer, word_index
     # finally, vectorize the text samples into a 2D integer tensor
     tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
@@ -132,6 +135,17 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
 
     return (trainX, trainY, valX, valY)
 
+def makeTokenizer():
+    global tokenizer, word_index
+
+    import cPickle as pickle
+
+    with open('tokenizer.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+
+    word_index = tokenizer.word_index
+    print('Found %s unique tokens.' % len(word_index))
+
 def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB_WORDS = 40000):
     # finally, vectorize the text samples into a 2D integer tensor
     sequences = tokenizer.texts_to_sequences(texts)
@@ -150,24 +164,29 @@ def preProcessTest(texts, labels_index, labels = None, chunk_size = 1000, MAX_NB
 
     return (testX)
 
-def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 100):
+def prepareEmbeddingMatrix(embeddings_index, MAX_NB_WORDS = 40000, EMBEDDING_DIM = 200):
     global nb_words, embedding_matrix
-    nb_words = len(word_index)
+    
+    nb_words = MAX_NB_WORDS
+    
     embedding_matrix = np.zeros((nb_words + 1, EMBEDDING_DIM))
     for word, i in word_index.items():
         if i > MAX_NB_WORDS:
             continue
+        
         embedding_vector = embeddings_index.get(word)
+        
         if embedding_vector is not None:
             # words not found in embedding index will be all-zeros.
             embedding_matrix[i] = embedding_vector
+    
     return embedding_matrix
 
-def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
-                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE=0.01, MOMENTUM=0.9):
+def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                 BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
     global sgd
 
-    ngram_filters = [3, 4, 5]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
     convs = []
 
     graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
@@ -206,7 +225,7 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
 
     model.add(Dense(                                           # Layer 3,  Output Size: 256
         output_dim=DENSE_FEATURE,                              # Output dimension
-        activation='relu'))                                    # Activation function to use
+        activation='sigmoid'))                                    # Activation function to use
 
     model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
         output_dim=classes,                                    # Output dimension
@@ -220,7 +239,108 @@ def compileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 10
     print("Done compiling.")
     return model
 
-def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
+def recompileModelCNN(classes, embedding_matrix, EMBEDDING_DIM = 200, chunk_size = 1000, CONVOLUTION_FEATURE = 256,
+                      BORDER_MODE = 'valid', DENSE_FEATURE = 256, DROP_OUT = 0.5, LEARNING_RATE = 0.01, MOMENTUM = 0.9):
+    global sgd
+
+    ngram_filters = [3, 4]                                  # Define ngrams list, 3-gram, 4-gram, 5-gram
+    convs = []
+
+    graph_in = Input(shape=(chunk_size, EMBEDDING_DIM))
+
+    for n_gram in ngram_filters:
+        conv = Convolution1D(                                  # Layer X,   Features: 256, Kernel Size: ngram
+            nb_filter=CONVOLUTION_FEATURE,                     # Number of kernels or number of filters to generate
+            filter_length=n_gram,                              # Size of kernels, ngram
+            activation='relu')(graph_in)                       # Activation function to use
+
+        pool = MaxPooling1D(                                   # Layer X a,  Max Pooling: 3
+            pool_length=3)(conv)                               # Size of kernels
+
+        flat = Flatten()(pool)
+
+        convs.append(flat)
+
+    model = Sequential()
+
+    model.add(Embedding(                                       # Layer 0, Start
+        input_dim=nb_words + 1,                                # Size to dictionary, has to be input + 1
+        output_dim=EMBEDDING_DIM,                              # Dimensions to generate
+        weights=[embedding_matrix],                            # Initialize word weights
+        input_length=chunk_size,                               # Define length to input sequences in the first layer
+        trainable=False))                                      # Disable weight changes during training
+
+    model.add(Dropout(0.25))                                   # Dropout 25%
+
+    out = Merge(mode='concat')(convs)                          # Layer 1,  Output Size: Concatted ngrams feature maps
+
+    graph = Model(input=graph_in, output=out)                  # Concat the ngram convolutions
+
+    model.add(graph)                                           # Concat the ngram convolutions
+
+    model.add(Dropout(DROP_OUT))                               # Dropout 50%
+
+    model.add(Dense(                                           # Layer 3,  Output Size: 256
+        output_dim=DENSE_FEATURE,                              # Output dimension
+        activation='sigmoid'))                                    # Activation function to use
+
+    model.add(Dense(                                           # Layer 4,  Output Size: Size Unique Labels, Final
+        output_dim=classes,                                    # Output dimension
+        activation='softmax'))                                 # Activation function to use
+
+    sgd = SGD(lr=LEARNING_RATE, momentum=MOMENTUM, nesterov=True)
+
+    filepath="author-cnn-ngrams-word.hdf5"
+
+    model.load_weights(filepath)
+    
+    model.pop()
+
+    model.compile(loss='categorical_crossentropy', optimizer=sgd,
+                  metrics=['accuracy'])
+
+    print("Done compiling.")
+    return model
+
+def getMLModel(algo):
+
+    multi_nb = MultinomialNB()
+
+    svc = SVC(kernel="linear", probability=True)
+    
+    oneVsSVC =  OneVsRestClassifier(SVC(kernel='linear', probability=True), n_jobs = 4)
+
+    if algo == 'multi_nb':
+        return multi_nb
+
+    elif algo == 'svc':
+        return svc
+    
+    elif algo == 'oneVsSVC':
+        return oneVsSVC
+
+    else:
+        print("Model not found")
+        return None
+
+
+def compileModelML(algo, new = True):
+    
+    mlmodel = getMLModel(algo)
+
+    if not new:
+        import cPickle as pickle
+
+        algoloadname = str(algo + '.pickle')
+
+        with open(algoloadname, 'rb') as handle:
+            mlmodel = pickle.load(handle)
+
+    print("Done compiling.")
+
+    return mlmodel
+
+def fitModelCNN(model, trainX, trainY, valX, valY, nb_epoch = 30, batch_size = 10):
     filepath="author-cnn-ngrams-word.hdf5"
 
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
@@ -234,23 +354,61 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
 
     # load weights from the best checkpoint
     model.load_weights(filepath)
+
     # Compile model again (required to make predictions)
     model.compile(loss='categorical_crossentropy', optimizer=sgd,
                   metrics=['accuracy'])
 
     train_acc = (model.evaluate(trainX, trainY))[1]
     print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
+
     val_acc = (model.evaluate(valX, valY))[1]
-    print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
+    print("\nFinal Validation Accuracy: %.2f" % (val_acc * 100))
+
+    import cPickle as pickle
+
+    with open('tokenizer.pickle', 'wb') as handle:
+        pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return (model, history, train_acc, val_acc)
 
-def predictModel(model, testX, batch_size=128):
+def fitModelML(feature_model, mlmodel, algo, trainX, trainY, valX, valY):
+
+    trainX = feature_model.predict(trainX)
+
+    mlmodel.fit(trainX, trainY)
+
+    train_acc = mlmodel.score(trainX, trainY)
+
+    valX = feature_model.predict(valX)
+
+    val_acc = mlmodel.score(valX, valY)
+
+    print("\n\nFinal Train Accuracy: %.2f" % (train_acc * 100))
+
+    print("\nFinal Validation Accuracy: %.2f" % (val_acc * 100))
+
+    import cPickle as pickle
+
+    algosavename = str(algo + '.pickle')
+
+    with open(algosavename, 'wb') as handle:
+        pickle.dump(mlmodel, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return (train_acc, val_acc)
+
+def predictModel(feature_model, mlmodel, testX, authorList):
     # Function to take input of data and return prediction model
-    predY = np.array(model.predict(testX, batch_size=batch_size))
+
+    testX = feature_model.predict(testX)
+
+    predY = np.array(mlmodel.predict_proba(testX))
+
     predYList = predY[:]
+    
     entro = []
     flag = False
+    
     import math
     for row in predY:
         entroval = 0
@@ -262,12 +420,15 @@ def predictModel(model, testX, batch_size=128):
                 entroval += (i * (math.log(i , 2)))
         entroval = -1 * entroval
         entro.append(entroval)
+    
     if(flag == False):
         yx = zip(entro, predY)
         yx = sorted(yx, key = lambda t: t[0])
         newPredY = [x for y, x in yx]
-        predYEntroList = newPredY[:int(len(newPredY)*0.9)]
+        predYEntroList = newPredY[:int(len(newPredY)*0.5)]
         predY = np.mean(predYEntroList, axis=0)
     else:
         predY = np.mean(predYList, axis=0)
+        
     return (predYList, predY)
+

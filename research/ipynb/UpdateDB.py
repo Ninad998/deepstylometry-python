@@ -235,7 +235,7 @@ def updateresultML(doc_id = 0, candidate = 4, dimensions = 200,
         if (len(rows) > 0):
             return False
         else:
-            cursor.execute("""INSERT INTO readingsOldML
+            cursor.execute("""INSERT INTO readingsML
             (doc_id, candidates, samples, train_acc, val_acc, test_acc, test_bin, test)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), 

@@ -176,8 +176,8 @@ def updateresultOldCNN(doc_id = 0, candidate = 4, dimensions = 200,
         if conn is not None:
             conn.close()
             
-def checkOldML(doc_id = 0, candidate = 4, samples = 300,
-               test = 'Error', port = 3306):
+def checkML(doc_id = 0, candidate = 4, samples = 300,
+            test = 'Error', port = 3306):
 
     conn = None
 
@@ -186,7 +186,7 @@ def checkOldML(doc_id = 0, candidate = 4, samples = 300,
 
         cursor = conn.cursor()
 
-        query = "SELECT * FROM readingsOldML WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query = "SELECT * FROM readingsML WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
         query += " AND samples = " + str(samples)
         query += " AND test LIKE '%" + str(test) + "%' ;"
 
@@ -210,11 +210,11 @@ def checkOldML(doc_id = 0, candidate = 4, samples = 300,
         if conn is not None:
             conn.close()
 
-def updateresultOldML(doc_id = 0, candidate = 4, dimensions = 200,
-                       samples = 300, iterations = 180, dropout = 0.2,
-                       train_acc = 0.0, val_acc = 0.0,
-                       test_acc = 0.0, test_bin = 0.0, 
-                       test = 'Error', port = 3306):
+def updateresultML(doc_id = 0, candidate = 4, dimensions = 200,
+                   samples = 300, iterations = 180, dropout = 0.2,
+                   train_acc = 0.0, val_acc = 0.0,
+                   test_acc = 0.0, test_bin = 0.0, 
+                   test = 'Error', port = 3306):
 
     conn = None
 
@@ -223,7 +223,7 @@ def updateresultOldML(doc_id = 0, candidate = 4, dimensions = 200,
 
         cursor = conn.cursor()
 
-        query = "SELECT * FROM readingsOldML WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
+        query = "SELECT * FROM readingsML WHERE doc_id = " + str(doc_id) + " AND candidates = " + str(candidate)
         query += " AND samples = " + str(samples)
         query += " AND test LIKE '%" + str(test) + "%' ;"
 

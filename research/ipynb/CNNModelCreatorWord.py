@@ -18,7 +18,7 @@ from keras.layers import Dropout
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def readVectorData(fileName, GLOVE_DIR = 'glove/'):

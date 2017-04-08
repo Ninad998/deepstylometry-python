@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 np.random.seed(123)
 
-databaseConnectionServer = 'srn02.cs.cityu.edu.hk'
+databaseConnectionServer = 'srn01.cs.cityu.edu.hk'
 documentTable = 'document'
 
 def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 300):

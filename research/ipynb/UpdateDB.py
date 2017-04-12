@@ -235,13 +235,14 @@ def updateresultML(doc_id = 0, candidate = 4, dimensions = 200,
         if (len(rows) > 0):
             return False
         else:
+            f_test_acc = (("%1.10f") % (test_acc))
             cursor.execute("""INSERT INTO readingsML
             (doc_id, candidates, samples, train_acc, val_acc, test_acc, test_bin, test)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), 
                             str(samples),
                             str(train_acc), str(val_acc),
-                            str(test_acc), str(test_bin),
+                            str(f_test_acc), str(test_bin),
                             str(test)))
             conn.commit()
 

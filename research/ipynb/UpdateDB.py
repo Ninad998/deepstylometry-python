@@ -212,7 +212,7 @@ def checkML(doc_id = 0, candidate = 4, samples = 300,
 def updateresultML(doc_id = 0, candidate = 4, dimensions = 200,
                    samples = 300, iterations = 180, dropout = 0.2,
                    train_acc = 0.0, val_acc = 0.0,
-                   test_acc = 0.0, test_bin = 0.0, 
+                   # test_acc = 0.0, test_bin = 0.0, 
                    test = 'Error', port = 3306):
 
     conn = None
@@ -234,14 +234,14 @@ def updateresultML(doc_id = 0, candidate = 4, dimensions = 200,
         if (len(rows) > 0):
             return False
         else:
-            f_test_acc = (("%1.10f") % (test_acc))
+            # f_test_acc = (("%1.10f") % (test_acc))
             cursor.execute("""INSERT INTO readingsML
-            (doc_id, candidates, samples, train_acc, val_acc, test_acc, test_bin, test)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s); """,
+            (doc_id, candidates, samples, train_acc, val_acc, test)
+            VALUES (%s, %s, %s, %s, %s, %s); """,
                            (str(doc_id), str(candidate), 
                             str(samples),
                             str(train_acc), str(val_acc),
-                            str(f_test_acc), str(test_bin),
+                            # str(f_test_acc), str(test_bin),
                             str(test)))
             conn.commit()
 

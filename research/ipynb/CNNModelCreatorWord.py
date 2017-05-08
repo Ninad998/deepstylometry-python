@@ -40,7 +40,7 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 3200):
     texts = []  # list of text samples
     labels_index = {}  # dictionary mapping label name to numeric id
     labels = []  # list of label ids
-    import DatabaseQuery
+    import FragmentorDatabaseQuery
     from sshtunnel import SSHTunnelForwarder
     PORT=5432
     with SSHTunnelForwarder((databaseConnectionServer, 22),
@@ -48,8 +48,11 @@ def loadAuthData(authorList, doc_id, chunk_size = 1000, samples = 3200):
                             ssh_password='stylometry',
                             remote_bind_address=('localhost', 5432),
                             local_bind_address=('localhost', 5400)):
-        textToUse = DatabaseQuery.getWordAuthData(5400, authorList, doc_id,
-                                                  documentTable = documentTable, chunk_size = chunk_size)
+        textToUse = FragmentorDatabaseQuery.getWordAuthData(
+            5400, authorList, doc_id,
+            documentTable = documentTable,
+            chunk_size = chunk_size, 
+            generate = samples)
     labels = []
     texts = []
     size = []

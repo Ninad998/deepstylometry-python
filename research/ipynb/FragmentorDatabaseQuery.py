@@ -27,7 +27,7 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)    
     return string.strip().lower()
 
-def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size = 1000):
+def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size = 1000, generate = 200):
     df = pd.DataFrame()
     conn = None
     output = []
@@ -37,46 +37,46 @@ def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size =
         conn = psycopg2.connect(user="stylometry", password="stylometry",
                                 database="stylometry", host="localhost", port=PORT)
         cur = conn.cursor()
-        query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE author_id IN ("
-        flag = False
         for auth in authors:
-            if not flag:
-                query = query + str(auth)
-                flag = True
-            else:
-                query = query + ", " + str(auth)
-        query = query + ") AND doc_id <> '" + str(doc) + "' ;"
-        cur.execute(query)
-        print("Execution completed")
-        rows = cur.fetchall()
-        print("Read completed")
-        print("Number of rows: %s" % (len(rows)))
-        for row in rows:
-            clean_row = clean_str(row[1].decode("utf8"))
-            tokens = nltk.word_tokenize(clean_row)
-            chunk1 = []
-            for x in tokens:
-                if (i < chunk_size):
-                    chunk1.append(x.encode("utf8"))
-                    i += 1
-                else:
-                    chunk1.append(x.encode("utf8"))
-                    xx = ' '.join(chunk1)
-                    xx = str(xx)
+            query = "SELECT author_id, doc_content FROM " + str(documentTable)
+            query += " WHERE author_id = " + str(auth)
+            query += " AND doc_id <> '" + str(doc) + "' ;"
+            cur.execute(query)
+            print("Execution completed")
+            rows = cur.fetchall()
+            print("Read completed")
+            print("Number of rows: %s" % (len(rows)))
+            
+            length = 0
+            tokens = []
+            for row in rows:
+                clean_row = clean_str(row[1].decode("utf8"))
+                tokens += nltk.word_tokenize(clean_row)
+                length = len(tokens)
+            if not len(rows) == 0:
+                for j in range(0, generate):
+                    import numpy as np
+                    x = np.random.randint(0, (len(tokens) - chunk_size))
+                    x1 = x + chunk_size
                     chunk1 = []
-                    output.append([row[0], xx])
-                    i = 1
-            if len(chunk1) > 0:
-                xx = ' '.join(chunk1)
-                xx = str(xx)
-                chunk1 = []
-                output.append([row[0], xx])
-                i = 1
+                    while (x <= x1):
+                        token = tokens[x]
+                        if (i < chunk_size):
+                            chunk1.append(token.encode("utf8"))
+                            i += 1
+                        else:
+                            chunk1.append(token.encode("utf8"))
+                            xx = ' '.join(chunk1)
+                            xx = str(xx)
+                            chunk1 = []
+                            output.append([row[0], xx])
+                            i = 1
+                        x = x + 1
 
         df = pd.DataFrame(output, columns=["author_id", "doc_content"])
         print(df.dtypes)
         print("Data Frame created: Shape: %s" % (str(df.shape)))
-
+    
     except psycopg2.Error as e:
         if conn:
             conn.rollback()

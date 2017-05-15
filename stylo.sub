@@ -1,9 +1,0 @@
-universe       = vanilla
-getenv         = True
-executable     = stylo.sh
-output         = /public/ntungare2/python/stylo.out
-error          = /public/ntungare2/python/stylo.error
-log            = /public/ntungare2/python/stylo.log
-requirements   = ((Machine == "r730a.cs.cityu.edu.hk") || (Machine == "r730b.cs.cityu.edu.hk") || (Machine == "r730c.cs.cityu.edu.hk"))
-
-queue

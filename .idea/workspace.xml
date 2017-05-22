@@ -2,25 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="334d5962-bb1c-4353-8c8d-8cbfc441bd03" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/DatabaseQueryUpdate.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/Update srn02.ipynb" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/deepstylometry-python.iml" afterPath="$PROJECT_DIR$/.idea/deepstylometry-python.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/CNNLSTMModelCreatorWord.py" afterPath="$PROJECT_DIR$/fyp/CNNLSTMModelCreatorWord.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/MassTest.ipynb" afterPath="$PROJECT_DIR$/fyp/MassTest.ipynb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/README.md" afterPath="$PROJECT_DIR$/fyp/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/StyloNeuralML.py" afterPath="$PROJECT_DIR$/fyp/StyloNeuralML.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test ML.ipynb" afterPath="$PROJECT_DIR$/fyp/Test ML.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo LSTM.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo LSTM.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo ML CNN PreTrained.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo ML CNN PreTrained.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo ML CNN.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo ML CNN.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/crepeAuthor.ipynb" afterPath="$PROJECT_DIR$/fyp/crepeAuthor.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/word2vecAuthor.ipynb" afterPath="$PROJECT_DIR$/fyp/word2vecAuthor.ipynb" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fyp/Test File.ipynb" afterPath="$PROJECT_DIR$/fyp/Test DB.ipynb" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fyp/Untitled.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Neural.ipynb" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -48,8 +31,8 @@
         <entry file="file://$PROJECT_DIR$/fyp/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="1374">
-                <caret line="73" column="0" lean-forward="true" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+              <first_editor relative-caret-position="1220">
+                <caret line="56" column="42" lean-forward="true" selection-start-line="56" selection-start-column="20" selection-end-line="56" selection-end-column="42" />
                 <folding />
               </first_editor>
               <second_editor />
@@ -80,9 +63,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1906" />
-    <option name="width" value="1948" />
-    <option name="height" value="2074" />
+    <option name="x" value="-16" />
+    <option name="y" value="-16" />
+    <option name="width" value="3872" />
+    <option name="height" value="2092" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -329,7 +313,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1906" y="0" width="1948" height="2074" extended-state="0" />
+    <frame x="-16" y="-16" width="3872" height="2092" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -338,7 +322,7 @@
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33872652" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16901042" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32968238" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -579,8 +563,8 @@
     <entry file="file://$PROJECT_DIR$/fyp/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="1374">
-            <caret line="73" column="0" lean-forward="true" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+          <first_editor relative-caret-position="1220">
+            <caret line="56" column="42" lean-forward="true" selection-start-line="56" selection-start-column="20" selection-end-line="56" selection-end-column="42" />
             <folding />
           </first_editor>
           <second_editor />

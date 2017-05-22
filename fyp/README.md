@@ -45,28 +45,28 @@ File to run [CNNModelCreatorWordLSTM.py ](CNNModelCreatorWordLSTM.py )
 [StyloNeuralML.py ](StyloNeuralML.py )
 File to run [CNNModelCreatorWordML.py ](CNNModelCreatorWordML.py )
 
-[Test DB.ipynb ](Test DB.ipynb )
+[Test DB.ipynb ](Test%20DB.ipynb )
 File to run Database Code line by line
 
-[Test ML.ipynb ](Test ML.ipynb )
+[Test ML.ipynb ](Test%20ML.ipynb )
 File to run tests on [StyloML.py ](StyloML.py )
 
-[Test ModelCreators.ipynb ](Test ModelCreators.ipynb )
+[Test ModelCreators.ipynb ](Test%20ModelCreators.ipynb )
 File to run tests on different tests of ModelCreators
 
-[Test Neural.ipynb ](Test Neural.ipynb )
+[Test Neural.ipynb ](Test%20Neural.ipynb )
 File to run Neural Network Code line by line
 
-[Test Stylo LSTM.ipynb ](Test Stylo LSTM.ipynb )
+[Test Stylo LSTM.ipynb ](Test%20Stylo%20LSTM.ipynb )
 File to run tests on [StyloNeuralLSTM.py ](StyloNeuralLSTM.py )
 
-[Test Stylo ML CNN PreTrained.ipynb ](Test Stylo ML CNN PreTrained.ipynb )
+[Test Stylo ML CNN PreTrained.ipynb ](Test%20Stylo%20ML%20CNN%20PreTrained.ipynb )
 File to run tests on pre-trained versions of [StyloNeuralML.py ](StyloNeuralML.py )
 
-[Test Stylo ML CNN.ipynb ](Test Stylo ML CNN.ipynb )
+[Test Stylo ML CNN.ipynb ](Test%20Stylo%20ML%20CNN.ipynb )
 File to run tests on features extracted by [StyloNeural.py ](StyloNeural.py ) using classical Machine Learning [StyloNeuralML.py ](StyloNeuralML.py )
 
-[Test Stylo.ipynb ](Test Stylo.ipynb )
+[Test Stylo.ipynb ](Test%20Stylo.ipynb )
 File to run tests on [StyloNeural.py ](StyloNeural.py )
 
 [UpdateDB.py ](UpdateDB.py )

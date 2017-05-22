@@ -18,7 +18,7 @@ Jupyter Notebook version of [CNNModelCreatorChar.py ](CNNModelCreatorChar.py )
 [DatabaseQuery.py ](DatabaseQuery.py )
 Python implementation for querying data from a central VM which stores novels from Project Gutenburg 
 
-[fyp candidate sets.csv ](fyp candidate sets.csv )
+[fyp candidate sets.csv ](fyp%20candidate%20sets.csv )
 File that contains Document IDs and Candidate Author IDs
 
 [LSTMModelCreatorWord.py ](LSTMModelCreatorWord.py )

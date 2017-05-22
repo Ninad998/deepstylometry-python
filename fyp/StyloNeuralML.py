@@ -8,7 +8,7 @@ def getResults(authorList = None, doc_id = None, algo = None, chunk_size = 1000,
         return None
 
     else:
-        import CNNModelCreatorWordEdit as md
+        import CNNModelCreatorWordML as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 
@@ -49,7 +49,7 @@ def getTestResults(authorList = None, doc_id = None, labels_index = None, algo =
         if level == 'char':
             import CNNModelCreatorChar as md
         else:
-            import CNNModelCreatorWordEdit as md
+            import CNNModelCreatorWordML as md
 
         embedfile = 'glove.6B.' + str(dimensions) + 'd.txt'
 

@@ -2,58 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="334d5962-bb1c-4353-8c8d-8cbfc441bd03" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/ANNModelCreatorWordGender.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/CNNModelCreatorWordEditCV.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/CNNModelCreatorWordLSTM.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/IMDBCNN.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/MLModelCreatorGender.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/StyloANNGender.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/StyloMLGender.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/StyloNeuralCV.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/Test Gender.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/TestGender.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/TestML.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/TestStylo.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/TestStyloLSTM.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/crepeAuthor-all.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/svcAuthor.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/word2vecAuthor-all.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/word2vecGender.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/CNNLSTMModelCreatorWord.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/CNNModelCreatorChar.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/CNNModelCreatorWord.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/CNNModelCreatorWordEditCV.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/CNNModelCreatorWordLSTM.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/CNNModelCreatorWordML.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/DatabaseQueryUpdate.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/FragmentorDatabaseQuery.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/LSTMModelCreatorWord.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/MLModelCreatorWord.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/MassTest.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/StyloML.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/StyloNeural.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/StyloNeuralCV.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/StyloNeuralLSTM.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/StyloNeuralML.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test ML Mass.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test ML.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test ModelCreators.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test Stylo LSTM.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test Stylo ML CNN PreTrained.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test Stylo ML CNN.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/Test Stylo.ipynb" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/TestGender.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/TestML.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/TestStylo.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/TestStyloLSTM.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/UpdateDB.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/queryset_CNN.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/research candidate sets.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/research/ipynb/word2vecAuthor.ipynb" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/fyp/Untitled.ipynb" afterPath="$PROJECT_DIR$/fyp/Test File.ipynb" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/DatabaseQueryUpdate.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/fyp/Update srn02.ipynb" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/deepstylometry-python.iml" afterPath="$PROJECT_DIR$/.idea/deepstylometry-python.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/CNNLSTMModelCreatorWord.py" afterPath="$PROJECT_DIR$/fyp/CNNLSTMModelCreatorWord.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/MassTest.ipynb" afterPath="$PROJECT_DIR$/fyp/MassTest.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/README.md" afterPath="$PROJECT_DIR$/fyp/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/StyloNeuralML.py" afterPath="$PROJECT_DIR$/fyp/StyloNeuralML.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test ML.ipynb" afterPath="$PROJECT_DIR$/fyp/Test ML.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo LSTM.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo LSTM.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo ML CNN PreTrained.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo ML CNN PreTrained.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo ML CNN.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo ML CNN.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/Test Stylo.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Stylo.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/crepeAuthor.ipynb" afterPath="$PROJECT_DIR$/fyp/crepeAuthor.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/fyp/word2vecAuthor.ipynb" afterPath="$PROJECT_DIR$/fyp/word2vecAuthor.ipynb" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/fyp/Test File.ipynb" afterPath="$PROJECT_DIR$/fyp/Test DB.ipynb" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/fyp/Untitled.ipynb" afterPath="$PROJECT_DIR$/fyp/Test Neural.ipynb" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -80,22 +47,9 @@
       <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fyp/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="SPLIT">
-              <first_editor relative-caret-position="360">
-                <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
-                <folding />
-              </first_editor>
-              <second_editor />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/README.md">
-          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="SPLIT">
-              <first_editor relative-caret-position="520">
-                <caret line="13" column="0" lean-forward="true" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+            <state split_layout="FIRST">
+              <first_editor relative-caret-position="1374">
+                <caret line="73" column="0" lean-forward="true" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
                 <folding />
               </first_editor>
               <second_editor />
@@ -112,6 +66,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/fyp/CNNLSTMModelCreatorWord.py" />
+        <option value="$PROJECT_DIR$/fyp/StyloNeuralML.py" />
+        <option value="$PROJECT_DIR$/fyp/StyloML.py" />
         <option value="$PROJECT_DIR$/fyp/README.md" />
       </list>
     </option>
@@ -123,10 +80,9 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-16" />
-    <option name="y" value="-16" />
-    <option name="width" value="3872" />
-    <option name="height" value="2092" />
+    <option name="x" value="1906" />
+    <option name="width" value="1948" />
+    <option name="height" value="2074" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -192,7 +148,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="C:/Program Files/Git/cmd/git.exe" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.project" />
+    <property name="settings.editor.selected.configurable" value="Errors" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -373,7 +329,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-16" y="-16" width="3872" height="2092" extended-state="7" />
+    <frame x="1906" y="0" width="1948" height="2074" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -382,9 +338,9 @@
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14947917" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33872652" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329718" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32968238" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -419,13 +375,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fyp/Test File.ipynb">
-      <provider selected="true" editor-type-id="ipnb-editor">
-        <state>
-          <selected id="-1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/crosslingual/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
@@ -454,11 +403,184 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/CNNLSTMModelCreatorWord.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3932">
+          <caret line="339" column="17" lean-forward="false" selection-start-line="339" selection-start-column="17" selection-end-line="339" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/LSTMModelCreatorWord.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-6000">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/CNNModelCreatorWordLSTM.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-7320">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/CNNModelCreatorWordML.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-8040">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/crepeAuthor.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/DatabaseQueryUpdate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-4102">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/fyp candidate sets.csv">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-889">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/MassTest.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/queryset_CNN.csv">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/StyloNeural.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/CNNModelCreatorChar.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/StyloNeuralLSTM.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="560">
+          <caret line="14" column="42" lean-forward="false" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/StyloNeuralML.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1320">
+          <caret line="51" column="40" lean-forward="false" selection-start-line="51" selection-start-column="19" selection-end-line="51" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/StyloML.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1120">
+          <caret line="28" column="33" lean-forward="false" selection-start-line="28" selection-start-column="33" selection-end-line="28" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test ML.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test Stylo LSTM.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test Stylo ML CNN PreTrained.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="-1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test Stylo ML CNN.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test Stylo.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Update srn02.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test DB.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="-1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/Test Neural.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="-1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fyp/word2vecAuthor.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/fyp/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="360">
-            <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+        <state split_layout="FIRST">
+          <first_editor relative-caret-position="1374">
+            <caret line="73" column="0" lean-forward="true" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
             <folding />
           </first_editor>
           <second_editor />

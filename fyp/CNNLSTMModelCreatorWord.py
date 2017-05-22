@@ -137,7 +137,7 @@ def preProcessTrainVal(texts, labels, chunk_size = 1000, MAX_NB_WORDS = 40000, V
 def makeTokenizer():
     global tokenizer, word_index
 
-    import cPickle as pickle
+    import pickle as pickle
 
     with open('tokenizer.pickle', 'rb') as handle:
         tokenizer = pickle.load(handle)
@@ -298,7 +298,7 @@ def recompileModel(classes, embedding_matrix, EMBEDDING_DIM = 100, chunk_size = 
         output_dim=classes,                                   # Output dimension
         activation='softmax'))                                # Activation function to use
     
-    import cPickle as pickle
+    import pickle as pickle
     
     rms = RMSprop(lr=LEARNING_RATE)
         
@@ -337,7 +337,7 @@ def fitModel(model, trainX, trainY, valX, valY, nb_epoch=30, batch_size=100):
     val_acc = (model.evaluate(valX, valY))[1]
     print("\nFinal Test Accuracy: %.2f" % (val_acc * 100))
 
-    import cPickle as pickle
+    import pickle as pickle
 
     with open('tokenizer.pickle', 'wb') as handle:
         pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)

@@ -35,7 +35,7 @@ def getWordAuthData(PORT, authors, doc, documentTable = 'document', chunk_size =
     # nltk.download('punkt')
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry", host="localhost", port=PORT)
+                                database="stylometry_v2", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE author_id IN ("
         flag = False
@@ -96,7 +96,7 @@ def getWordDocData(PORT, doc, documentTable = 'document', chunk_size = 1000):
     i = 1
     try:
         conn = psycopg2.connect(user="stylometry", password="stylometry",
-                                database="stylometry", host="localhost", port=PORT)
+                                database="stylometry_v2", host="localhost", port=PORT)
         cur = conn.cursor()
         query = "SELECT author_id, doc_content FROM " + str(documentTable) + " WHERE doc_id = '" + str(doc) + "' ;"
         cur.execute(query)
